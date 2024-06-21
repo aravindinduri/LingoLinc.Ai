@@ -18,3 +18,5 @@ const auth = getAuth(app);
 const firestore = getFirestore(app);
 
 export { auth , firestore , app };
+
+console.log(process.env.NEXT_PUBLIC_FIREBASE_API_KEY)

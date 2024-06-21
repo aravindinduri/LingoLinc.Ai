@@ -1,8 +1,12 @@
 "use client";
-import { motion } from "framer-motion"
 import { Example } from "@/components/Example";
-export default function Home() {
-  return (
+import run  from "../utils/gemini"
+
+  export default function Home() {
+    run();
+    return (
+      <>
     <Example/>
+    </>
   );
 }
