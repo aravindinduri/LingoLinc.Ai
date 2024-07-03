@@ -1,4 +1,3 @@
-// app/api/generate/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -20,7 +19,6 @@ const generationConfig = {
 
 export async function POST(req: NextRequest) {
   const { language, day } = await req.json();
-  console.log('sdc')
   if (!language || !day) {
     return NextResponse.json({ error: 'Language and day are required' }, { status: 400 });
   }
