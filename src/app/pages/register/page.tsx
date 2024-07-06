@@ -28,7 +28,7 @@ const RegisterPage = () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await sendEmailVerification(userCredential.user);
-      router.push('/login');
+      router.push('/pages/login');
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -45,7 +45,7 @@ const RegisterPage = () => {
 
     try {
       await signInWithPopup(auth, provider);
-      router.push('pages/login'); // Redirect after successful Google sign-in
+      router.push('/pages/login'); 
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);

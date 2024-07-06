@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { useSignInWithEmailAndPassword, useSignInWithGoogle } from 'react-firebase-hooks/auth';
@@ -15,11 +15,12 @@ const SignIn = () => {
   const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (loading) return;
-
     try {
-      await signInWithEmailAndPassword(email, password);
-      router.push('/');
+      let user = await signInWithEmailAndPassword(email, password);
+      if (!error) {
+        console.log(user)
+        router.push('/pages/home');
+      }
     } catch (e) {
       console.error(e);
     }
@@ -28,7 +29,9 @@ const SignIn = () => {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
-      router.push('/');
+      if (!googleError) {
+        router.push('/pages/home');
+      }
     } catch (e) {
       console.error(e);
     }
@@ -36,7 +39,6 @@ const SignIn = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 relative overflow-hidden">
-      {/* Animated SVG Background */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <svg
           className="absolute inset-0 w-full h-full z-0"
@@ -125,13 +127,14 @@ const SignIn = () => {
         <button 
           onClick={handleGoogleSignIn} 
           className="w-full flex items-center justify-center p-2 bg-white/20 rounded-lg border border-gray-600 text-gray-200 font-medium hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-200 ease-in-out"
+          disabled={googleLoading}
         >
           <img 
             src="https://pngimg.com/uploads/google/google_PNG19635.png" 
             alt="Google Logo" 
             className="w-5 h-5 mr-2"
           />
-          Sign in with Google
+          {googleLoading ? 'Signing In with Google...' : 'Sign in with Google'}
         </button>
         <p className="text-sm text-center text-gray-400 mt-6">
           New to LingoLinc?{' '}

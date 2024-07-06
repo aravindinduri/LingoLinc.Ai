@@ -4,10 +4,18 @@
 
 @import 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap';
 
+/* global.css */
+
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: #1f2937; /* Dark background for the whole page */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #121212; 
 }
+ocus {
+  outline: none;
+}
+
 
 a {
   color: #3b82f6; /* Tailwind blue color for links */
