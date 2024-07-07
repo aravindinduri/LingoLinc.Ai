@@ -1,81 +1,122 @@
-// components/AdvancedSidebar.tsx
-import React from 'react';
-import { List, ListItem, ListItemText, ListItemButton, Divider, Box, Typography, ListItemIcon } from '@mui/material';
-import HomeIcon from '@mui/icons-material/Home';
-import SchoolIcon from '@mui/icons-material/School';
-import BadgeIcon from '@mui/icons-material/Badge';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { useTheme } from '@mui/material/styles';
+// components/Sidebar.tsx
+import {
+  BottomNavigation,
+  BottomNavigationAction,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
 
-interface AdvancedSidebarProps {
-  setSection: (section: string) => void;
+import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
+import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
+import WhatshotRoundedIcon from '@mui/icons-material/WhatshotRounded';
+import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
+import React, { useState } from 'react';
+
+interface SidebarProps {
+  setSection: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const AdvancedSidebar: React.FC<AdvancedSidebarProps> = ({ setSection }) => {
+const Sidebar: React.FC<SidebarProps> = ({ setSection }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [value, setValue] = useState('learn');
 
-  return (
-    <Box
+  const handleListItemClick = (section: string) => {
+    setSection(section);
+    setValue(section);
+  };
+
+  return isMobile ? (
+    <BottomNavigation
+      showLabels
+      value={value}
+      onChange={(event, newValue) => {
+        handleListItemClick(newValue);
+      }}
       sx={{
-        width: 240,
-        height: '100vh',
-        backgroundColor: theme.palette.background.paper,
-        borderRight: `1px solid ${theme.palette.divider}`,
-        zIndex: 10,  // Set z-index to 10
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1100,
+        bgcolor: '#1F2937'
       }}
     >
-      <Box p={2}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>Menu</Typography>
+      <BottomNavigationAction
+        label=""
+        value="learn"
+        icon={<TrendingUpRoundedIcon style={{ color: 'white' }} />}
+        sx={{ color: 'white' }}
+      />
+      <BottomNavigationAction
+        label=""
+        value="practice"
+        icon={<RestartAltRoundedIcon style={{ color: 'white' }} />}
+        sx={{ color: 'white' }}
+      />
+      <BottomNavigationAction
+        label=""
+        value="streaks"
+        icon={<WhatshotRoundedIcon style={{ color: 'white' }} />}
+        sx={{ color: 'white' }}
+      />
+      <BottomNavigationAction
+        label=""
+        value="profile"
+        icon={<AccountCircleRoundedIcon style={{ color: 'white' }} />}
+        sx={{ color: 'white' }}
+      />
+    </BottomNavigation>
+  ) : (
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: 240,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': {
+          width: 240,
+          boxSizing: 'border-box',
+          bgcolor: '#1F2937',
+          marginTop: '64px', // Adjust to ensure it does not overlap the navbar
+          zIndex: 10 // Ensure sidebar is below the navbar
+        }
+      }}
+    >
+      <div className="flex flex-col h-full">
         <List>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setSection('learn')}>
-              <ListItemIcon>
-                <HomeIcon />
-              </ListItemIcon>
-              <ListItemText primary="Learn" />
-            </ListItemButton>
+          <ListItem button onClick={() => handleListItemClick('learn')}>
+            <ListItemIcon>
+              <TrendingUpRoundedIcon style={{ color: 'white',fontSize:'30px' }} />
+            </ListItemIcon>
+            <ListItemText primary="Learn" sx={{ color: 'white' }} />
           </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setSection('practice')}>
-              <ListItemIcon>
-                <SchoolIcon />
-              </ListItemIcon>
-              <ListItemText primary="Practice" />
-            </ListItemButton>
+          <ListItem button onClick={() => handleListItemClick('practice')}>
+            <ListItemIcon>
+              <RestartAltRoundedIcon style={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText primary="Practice" sx={{ color: 'white' }} />
           </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setSection('streaks')}>
-              <ListItemIcon>
-                <BadgeIcon />
-              </ListItemIcon>
-              <ListItemText primary="Daily Streaks" />
-            </ListItemButton>
+          <ListItem button onClick={() => handleListItemClick('streaks')}>
+            <ListItemIcon>
+              <WhatshotRoundedIcon style={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText primary="Daily Streaks" sx={{ color: 'white' }} />
           </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={() => setSection('profile')}>
-              <ListItemIcon>
-                <AccountCircleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Profile" />
-            </ListItemButton>
+          <ListItem button onClick={() => handleListItemClick('profile')}>
+            <ListItemIcon>
+              <AccountCircleRoundedIcon style={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText primary="Profile" sx={{ color: 'white' }} />
           </ListItem>
         </List>
-        <Divider sx={{ my: 2 }} />
-        <List>
-          <ListItem disablePadding>
-            <ListItemButton>
-              <ListItemText primary="Settings" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton>
-              <ListItemText primary="Help" />
-            </ListItemButton>
-          </ListItem>
-        </List>
-      </Box>
-    </Box>
+      </div>
+    </Drawer>
   );
 };
 
-export default AdvancedSidebar;
+export default Sidebar;

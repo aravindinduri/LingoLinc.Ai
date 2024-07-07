@@ -8,6 +8,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/app/firebase/config';
 import GetStartedButton from './Button';
 import { Logo } from './Logo';
+import MenuIcon from '@mui/icons-material/Menu';
 
 const NavBar: React.FC = () => {
   const router = useRouter();
@@ -27,10 +28,10 @@ const NavBar: React.FC = () => {
   };
 
   return (
-    <Disclosure as="nav" className="bg-gray-900 sticky top-0 w-full z-20"> {/* Set z-index to 20 */}
+    <Disclosure as="nav" className="bg-gray-900 sticky top-0 w-full z-20">
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
         <div className="relative flex h-16 items-center justify-between">
-          <div className="flex flex-1 items-center justify-between sm:items-stretch sm:justify-start">
+          <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
             <div className="flex flex-shrink-0 items-center">
               <Logo onClick={() => router.push('/')} />
             </div>
