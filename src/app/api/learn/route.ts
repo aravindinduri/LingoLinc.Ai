@@ -38,7 +38,6 @@ export async function POST(req: NextRequest) {
   const result = await chatSession.sendMessage(`Please provide the words and sentences.`);
   const responseText = result.response.text();
 
-  // Parse the response text to extract words and sentences
   const matches = responseText.match(/(\*\*Words:\*\*([\s\S]*?)\*\*Sentences:\*\*([\s\S]*))/);
   if (!matches) {
     return NextResponse.json({ error: 'No lessons available' }, { status: 200 });
@@ -53,6 +52,5 @@ export async function POST(req: NextRequest) {
     words,
     sentences,
   };
-  console.log(responseData)
   return NextResponse.json(responseData);
 }
