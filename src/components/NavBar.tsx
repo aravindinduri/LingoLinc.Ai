@@ -27,13 +27,10 @@ const NavBar: React.FC = () => {
   };
 
   return (
-    <Disclosure as="nav" className="bg-gray-900 sticky top-0 w-full">
+    <Disclosure as="nav" className="bg-gray-900 sticky top-0 w-full z-20"> {/* Set z-index to 20 */}
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
         <div className="relative flex h-16 items-center justify-between">
-          <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
-            {/* Mobile menu button */}
-          </div>
-          <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+          <div className="flex flex-1 items-center justify-between sm:items-stretch sm:justify-start">
             <div className="flex flex-shrink-0 items-center">
               <Logo onClick={() => router.push('/')} />
             </div>
