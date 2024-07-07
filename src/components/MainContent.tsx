@@ -2,6 +2,7 @@
 "use client";
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
+import Learn from './Learn';
 
 const MainContent: React.FC = () => {
   const [section, setSection] = useState<string>('learn');
@@ -9,7 +10,7 @@ const MainContent: React.FC = () => {
   const renderSection = () => {
     switch (section) {
       case 'learn':
-        return <div>Learn Section</div>;
+        return <div><Learn/></div>;
       case 'practice':
         return <div>Practice Section</div>;
       case 'streaks':

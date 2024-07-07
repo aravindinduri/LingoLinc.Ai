@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -29,13 +28,13 @@ export async function POST(req: NextRequest) {
       {
         role: 'user',
         parts: [
-          { text: 'I am going to give you a language and day, you need to give me the 5 words and 5 sentences from the input language' },
+          { text: 'Please provide 5 words and 5 sentences for the following language and day.' },
         ],
       },
       {
         role: 'model',
         parts: [
-          { text: "Sounds great! I'm ready. Tell me the language and day, and I'll give you 5 words and 5 sentences. 😊" },
+          { text: "Sure! Please provide the language and day, and I will give you the required words and sentences." },
         ],
       },
       {
@@ -47,8 +46,24 @@ export async function POST(req: NextRequest) {
     ],
   });
 
-  const result = await chatSession.sendMessage("Please provide the words and sentences.");
+  const result = await chatSession.sendMessage("Provide 5 words and 5 sentences.");
   const responseText = result.response.text();
 
-  return NextResponse.json({ output: responseText });
+  // Extract words and sentences from the response
+  const words: string[] = [];
+  const sentences: string[] = [];
+  let isSentenceSection = false;
+  responseText.split('\n').forEach(line => {
+    if (line.startsWith('**Words:**')) {
+      isSentenceSection = false;
+    } else if (line.startsWith('**Sentences:**')) {
+      isSentenceSection = true;
+    } else if (line.startsWith('1. ') && !isSentenceSection) {
+      words.push(line.substring(3));
+    } else if (isSentenceSection && line.startsWith('1. ')) {
+      sentences.push(line.substring(3));
+    }
+  });
+
+  return NextResponse.json({ words, sentences });
 }
