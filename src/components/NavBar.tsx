@@ -8,7 +8,6 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/app/firebase/config';
 import GetStartedButton from './Button';
 import { Logo } from './Logo';
-import MenuIcon from '@mui/icons-material/Menu';
 
 const NavBar: React.FC = () => {
   const router = useRouter();

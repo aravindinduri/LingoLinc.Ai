@@ -17,6 +17,7 @@ const generationConfig = {
 };
 
 export async function POST(req: NextRequest) {
+  console.log('hj')
   const { language, day } = await req.json();
   if (!language || !day) {
     return NextResponse.json({ error: 'Language and day are required' }, { status: 400 });
@@ -28,42 +29,30 @@ export async function POST(req: NextRequest) {
       {
         role: 'user',
         parts: [
-          { text: 'Please provide 5 words and 5 sentences for the following language and day.' },
-        ],
-      },
-      {
-        role: 'model',
-        parts: [
-          { text: "Sure! Please provide the language and day, and I will give you the required words and sentences." },
-        ],
-      },
-      {
-        role: 'user',
-        parts: [
-          { text: `${language} Day ${day}` },
+          { text: `Please give me 5 words and 5 sentences in ${language} for Day ${day}` },
         ],
       },
     ],
   });
 
-  const result = await chatSession.sendMessage("Provide 5 words and 5 sentences.");
+  const result = await chatSession.sendMessage(`Please provide the words and sentences.`);
   const responseText = result.response.text();
 
-  // Extract words and sentences from the response
-  const words: string[] = [];
-  const sentences: string[] = [];
-  let isSentenceSection = false;
-  responseText.split('\n').forEach(line => {
-    if (line.startsWith('**Words:**')) {
-      isSentenceSection = false;
-    } else if (line.startsWith('**Sentences:**')) {
-      isSentenceSection = true;
-    } else if (line.startsWith('1. ') && !isSentenceSection) {
-      words.push(line.substring(3));
-    } else if (isSentenceSection && line.startsWith('1. ')) {
-      sentences.push(line.substring(3));
-    }
-  });
+  // Parse the response text to extract words and sentences
+  const matches = responseText.match(/(\*\*Words:\*\*([\s\S]*?)\*\*Sentences:\*\*([\s\S]*))/);
+  if (!matches) {
+    return NextResponse.json({ error: 'No lessons available' }, { status: 200 });
+  }
 
-  return NextResponse.json({ words, sentences });
+  const words = matches[2].trim().split('\n').map(item => item.replace(/^\d+\.\s*/, '').trim());
+  const sentences = matches[3].trim().split('\n').map(item => item.replace(/^\d+\.\s*/, '').trim());
+
+  const responseData = {
+    language,
+    day,
+    words,
+    sentences,
+  };
+  console.log(responseData)
+  return NextResponse.json(responseData);
 }

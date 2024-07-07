@@ -1,4 +1,4 @@
-// components/MainContent.tsx
+
 "use client";
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
