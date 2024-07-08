@@ -17,7 +17,6 @@ const generationConfig = {
 };
 
 export async function POST(req: NextRequest) {
-  console.log('hj')
   const { language, day } = await req.json();
   if (!language || !day) {
     return NextResponse.json({ error: 'Language and day are required' }, { status: 400 });

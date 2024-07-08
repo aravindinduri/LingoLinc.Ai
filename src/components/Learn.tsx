@@ -7,21 +7,25 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import {
   Button,
   Typography,
-  Menu,
-  MenuItem,
-  Card,
-  CardContent,
-  CardActions,
   Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from '@mui/material';
-import { Add } from '@mui/icons-material';
 
 const Learn: React.FC = () => {
   const [user] = useAuthState(auth);
-  const [userLanguages, setUserLanguages] = useState<{ name: string, daysCompleted: number }[]>([]);
+  const [userLanguages, setUserLanguages] = useState<string[]>([]);
   const [language, setLanguage] = useState<string>('');
-  const [showLanguageSelector, setShowLanguageSelector] = useState<boolean>(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [day, setDay] = useState<number>(1);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
+
+  const popularLanguages = [
+    'Spanish', 'French', 'German', 'Italian', 'Chinese', 'Japanese', 'Korean', 'Portuguese',
+    'Russian', 'Arabic', 'Turkish', 'Swedish', 'Norwegian', 'Danish', 'Finnish'
+  ];
 
   useEffect(() => {
     const fetchUserLanguages = async () => {
@@ -32,6 +36,7 @@ const Learn: React.FC = () => {
           const userData = userDoc.data();
           setUserLanguages(userData.languages || []);
           setLanguage(userData.language || '');
+          setDay(userData.day || 1);
         }
       }
     };
@@ -39,78 +44,81 @@ const Learn: React.FC = () => {
     fetchUserLanguages();
   }, [user]);
 
-  const handleLanguageSelect = async (selectedLanguage: string) => {
-    if (user) {
+  const handleLanguageChange = (event: SelectChangeEvent<string>) => {
+    setSelectedLanguage(event.target.value);
+  };
+
+  const handleAddLanguage = async () => {
+    if (user && selectedLanguage) {
       try {
         const userRef = doc(firestore, 'users', user.uid);
-        // Find the selected language's daysCompleted
-        const languageData = userLanguages.find(lang => lang.name === selectedLanguage);
-        const daysCompleted = languageData ? languageData.daysCompleted : 1;
-
-        await setDoc(userRef, {
+        await setDoc(userRef, { 
+          languages: [...userLanguages, selectedLanguage],
           language: selectedLanguage,  // Set the current language
-          day: daysCompleted + 1  // Move to the next day
+          day: 1
         }, { merge: true });
-
+        setUserLanguages(prevLanguages => [...prevLanguages, selectedLanguage]);
         setLanguage(selectedLanguage);
+        setDay(1);
+        setSelectedLanguage('');  // Clear the selected language
       } catch (error) {
         console.error("Error selecting language:", error);
       }
     }
   };
 
-  const handleAddLanguage = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleCloseLanguageSelector = () => {
-    setShowLanguageSelector(false);
-  };
-
   return (
     <div className="p-4">
       <Typography variant="h5" className="text-center mb-4">Learn</Typography>
       {userLanguages.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-4 mb-4">
           {userLanguages.map((lang, index) => (
-            <Card key={index} variant="outlined">
-              <CardContent>
-                <Typography variant="h6">{lang.name}</Typography>
-                <Typography variant="body2">Days Completed: {lang.daysCompleted}</Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  onClick={() => setLanguage(lang.name)}
-                  variant="contained"
-                  color="primary"
-                >
-                  View Progress
-                </Button>
-              </CardActions>
-            </Card>
+            <Button
+              key={index}
+              onClick={() => {
+                setLanguage(lang);
+                setDay(1);
+              }}
+              variant="contained"
+              color="primary"
+            >
+              {lang}
+            </Button>
           ))}
         </div>
       )}
+      <FormControl fullWidth className="mb-4">
+        <InputLabel>Select Language</InputLabel>
+        <Select
+          value={selectedLanguage}
+          onChange={handleLanguageChange}
+          label="Select Language"
+        >
+          {popularLanguages.map((lang) => (
+            <MenuItem key={lang} value={lang}>
+              {lang}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
       <Button
         onClick={handleAddLanguage}
         variant="contained"
         color="secondary"
-        startIcon={<Add />}
-        sx={{ mt: 2 }}
+        disabled={!selectedLanguage}
       >
         Add Language
       </Button>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleCloseLanguageSelector}
-      >
-        {['Spanish', 'French', 'German', 'Italian', 'Chinese', 'Japanese', 'Korean', 'Portuguese', 'Russian', 'Arabic', 'Turkish', 'Swedish', 'Norwegian', 'Danish', 'Finnish'].map((lang, index) => (
-          <MenuItem key={index} onClick={() => handleLanguageSelect(lang)}>
-            {lang}
-          </MenuItem>
-        ))}
-      </Menu>
+      {language && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => window.location.href = `/roadmap/${language}`}
+          className="mt-4"
+        >
+          Go to Roadmap for {language}
+        </Button>
+      )}
     </div>
   );
 };

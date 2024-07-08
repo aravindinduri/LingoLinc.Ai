@@ -5,10 +5,8 @@ import PathStep from './PathStep';
 import { Typography } from '@mui/material';
 
 const LearnPage: React.FC = () => {
-  const [language, setLanguage] = React.useState('German'); // Example language
-  const [day, setDay] = React.useState(1); // Example day
-
-  // Simulated completed days
+  const [language, setLanguage] = React.useState('German'); 
+  const [day, setDay] = React.useState(1); 
   const completedDays = [1, 2, 3];
 
   return (
@@ -20,7 +18,6 @@ const LearnPage: React.FC = () => {
             key={step}
             completed={completedDays.includes(step)}
             onClick={() => {
-              // Navigate to the lesson page for the selected day
               if (completedDays.includes(step)) {
                 window.location.href = `/learn/${language}/${step}`;
               }

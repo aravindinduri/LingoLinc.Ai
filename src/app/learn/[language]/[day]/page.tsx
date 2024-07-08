@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, firestore } from '@/app/firebase/config';
@@ -48,7 +48,6 @@ const LessonPage: React.FC = () => {
     if (lessons && currentIndex < lessons.words.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else if (lessons) {
-      // Move to the next day
       if (user) {
         try {
           const userRef = doc(firestore, 'users', user.uid);
@@ -57,11 +56,8 @@ const LessonPage: React.FC = () => {
             const userData = userDoc.data();
             const nextDay = (parseInt(day as string) || 1) + 1;
 
-            await setDoc(userRef, {
-              languages: userData.languages.map(lang => lang.name === language ? { ...lang, daysCompleted: nextDay } : lang)
-            }, { merge: true });
+            await setDoc(userRef, { [`languages.${language}`]: nextDay }, { merge: true });
 
-            // Fetch the next day's lessons
             const nextDayLessons = await fetch(`/api/learn`, {
               method: 'POST',
               headers: {
@@ -88,7 +84,7 @@ const LessonPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (currentIndex === lessons?.words.length - 1 ) {
+    if (lessons && currentIndex === lessons.words.length - 1) {
       setOpenDialog(true);
     }
   }, [currentIndex, lessons]);
@@ -97,7 +93,7 @@ const LessonPage: React.FC = () => {
     <div className="p-4">
       <Typography variant="h5" className="text-center mb-4">Lessons for {language} - Day {day}</Typography>
       {lessons && (
-        <div className="space-y-4 mt-4">
+        <div className="space-y-4">
           <Typography variant="h6">Word: {lessons.words[currentIndex]}</Typography>
           <Typography variant="body1">Sentence: {lessons.sentences[currentIndex]}</Typography>
           <LinearProgress
