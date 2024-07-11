@@ -52,7 +52,7 @@ const RoadMap: React.FC<RoadMapProps> = ({ params }) => {
         } else {
           console.error('Failed to fetch lessons');
         }
-        setLoading(false);  // Stop loading once lessons are fetched
+        setLoading(false);  
       }
     };
 

@@ -2,6 +2,7 @@
 "use client";
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
+import DailyStreaksCalendar from './DailyStreaks';
 import Learn from './Learn';
 
 const MainContent: React.FC = () => {
@@ -14,7 +15,7 @@ const MainContent: React.FC = () => {
       case 'practice':
         return <div>Practice Section</div>;
       case 'streaks':
-        return <div>Daily Streaks Section</div>;
+        return <div><DailyStreaksCalendar/></div>;
       case 'profile':
         return <div>Profile Section</div>;
       default:

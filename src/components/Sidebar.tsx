@@ -1,4 +1,3 @@
-// components/Sidebar.tsx
 import {
   BottomNavigation,
   BottomNavigationAction,
