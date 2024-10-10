@@ -1,131 +1,173 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, firestore } from '@/app/firebase/config';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import {
-  Button,
-  Typography,
-  Box,
-  LinearProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from '@mui/material';
-import { CheckCircleOutline } from '@mui/icons-material';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { Box, Typography, Button, CircularProgress, Snackbar } from '@mui/material';
+import { Alert } from '@mui/lab';
 
-const LessonPage: React.FC = () => {
+const Lesson = ({ params }: { params: { language: string; day: string } }) => {
   const [user] = useAuthState(auth);
-  const [lessons, setLessons] = useState<{ words: string[], sentences: string[] } | null>(null);
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const { language, day } = useParams();
+  const [lessonData, setLessonData] = useState<{ words: string[]; sentences: string[] } | null>(null);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [streakUpdated, setStreakUpdated] = useState(false);
+  const [showSnackbar, setShowSnackbar] = useState(false);
   const router = useRouter();
 
+  const { language, day } = params;
+
   useEffect(() => {
-    const fetchLessons = async () => {
-      if (language && day) {
+    const fetchLesson = async () => {
+      try {
         const response = await fetch('/api/learn', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ language, day }),
         });
-        const data = await response.json();
-        setLessons(data);
+
+        if (response.ok) {
+          const data = await response.json();
+          setLessonData(data);
+        } else {
+          console.error('Failed to fetch lesson data');
+        }
+      } catch (error) {
+        console.error('Error fetching lesson data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchLessons();
+    fetchLesson();
   }, [language, day]);
 
   const handleNext = async () => {
-    if (lessons && currentIndex < lessons.words.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else if (lessons) {
-      if (user) {
-        try {
-          const userRef = doc(firestore, 'users', user.uid);
-          const userDoc = await getDoc(userRef);
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            const nextDay = (parseInt(day as string) || 1) + 1;
+    if (!lessonData) return;
 
-            await setDoc(userRef, { [`languages.${language}`]: nextDay }, { merge: true });
+    if (currentWordIndex < (lessonData.words.length ?? 0) - 1) {
+      setCurrentWordIndex(currentWordIndex + 1);
+    } else if (currentSentenceIndex < (lessonData.sentences.length ?? 0) - 1) {
+      setCurrentSentenceIndex(currentSentenceIndex + 1);
+    } else {
+      await completeLesson();
+    }
+  };
 
-            const nextDayLessons = await fetch(`/api/learn`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ language, day: nextDay }),
-            }).then(res => res.json());
+  const completeLesson = async () => {
+    if (!user || !lessonData) return;
 
-            setLessons(nextDayLessons);
-            setCurrentIndex(0);
-            router.push(`/learn/${language}/${nextDay}`);
-          }
-        } catch (error) {
-          console.error('Error updating the day:', error);
+    try {
+      const userRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userRef);
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const completedDays = userData.languages?.[language] || 0;
+
+        const today = new Date().toISOString().split('T')[0];
+        const lastCompletedDate = userData.lastCompletedDate || '';
+
+        let newStreak = userData.streak || 0;
+
+        if (today === lastCompletedDate) {
+          return;
+        } else if (today === new Date(new Date(lastCompletedDate).setDate(new Date(lastCompletedDate).getDate() + 1)).toISOString().split('T')[0]) {
+          newStreak += 1;
+        } else {
+          newStreak = 1;
         }
+
+        await updateDoc(userRef, {
+          [`languages.${language}`]: completedDays + 1,
+          streak: newStreak,
+          lastCompletedDate: today,
+          completedDays: (userData.completedDays || 0) + 1,
+        });
+
+        setStreakUpdated(true);
+        setShowSnackbar(true);
       }
+    } catch (error) {
+      console.error('Error updating lesson completion:', error);
     }
   };
 
-  const handlePrevious = () => {
-    if (lessons && currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
+  const handleSnackbarClose = () => {
+    setShowSnackbar(false);
   };
 
-  useEffect(() => {
-    if (lessons && currentIndex === lessons.words.length - 1) {
-      setOpenDialog(true);
-    }
-  }, [currentIndex, lessons]);
+  const handleHome = () => {
+    router.push('/home');
+  };
+
+  const handleNextLesson = () => {
+    const nextDay = parseInt(day) + 1;
+    router.push(`/learn/${language}/${nextDay}`);
+  };
+
+  if (loading) {
+    return (
+      <Box p={4} display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <div className="p-4">
-      <Typography variant="h5" className="text-center mb-4">Lessons for {language} - Day {day}</Typography>
-      {lessons && (
-        <div className="space-y-4">
-          <Typography variant="h6">Word: {lessons.words[currentIndex]}</Typography>
-          <Typography variant="body1">Sentence: {lessons.sentences[currentIndex]}</Typography>
-          <LinearProgress
-            variant="determinate"
-            value={(currentIndex + 1) / lessons.words.length * 100}
-            sx={{ marginBottom: 2 }}
-          />
-          <Box display="flex" justifyContent="space-between">
-            <Button onClick={handlePrevious} disabled={currentIndex === 0}>Previous</Button>
-            <Button onClick={handleNext} disabled={currentIndex === lessons.words.length - 1}>Next</Button>
-          </Box>
-        </div>
-      )}
-
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
+    <Box p={4}>
+      <Typography variant="h4" mb={4}>Lesson for {language} - Day {day}</Typography>
+      <Box mb={4}>
+        <Typography variant="h6">Word:</Typography>
+        <Typography variant="body1">
+          {lessonData?.words[currentWordIndex] || 'No word available'}
+        </Typography>
+      </Box>
+      <Box mb={4}>
+        <Typography variant="h6">Sentence:</Typography>
+        <Typography variant="body1">
+        {Array.isArray(lessonData?.words) && lessonData.words[currentWordIndex]
+    ? lessonData.words[currentWordIndex]
+    : 'No word available'}        </Typography>
+      </Box>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleNext}
       >
-        <DialogTitle>
-          <CheckCircleOutline color="success" /> Congratulations!
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            You have completed today's lessons.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} color="primary">Close</Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+        {currentWordIndex < (lessonData?.words.length ?? 0) - 1 || currentSentenceIndex < (lessonData?.sentences.length ?? 0) - 1 ? 'Next' : 'Complete Lesson'}
+      </Button>
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={handleHome}
+        sx={{ ml: 2 }}
+      >
+        Go to Home
+      </Button>
+      {currentWordIndex === (lessonData?.words.length ?? 0) - 1 && currentSentenceIndex === (lessonData?.sentences.length ?? 0) - 1 && (
+        <Button
+          variant="contained"
+          color="success"
+          onClick={handleNextLesson}
+          sx={{ mt: 2 }}
+        >
+          Next Lesson
+        </Button>
+      )}
+      <Snackbar
+        open={showSnackbar}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+      >
+        <Alert onClose={handleSnackbarClose} severity="success">
+          Congratulations! You've completed the lesson.
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 
-export default LessonPage;
+export default Lesson;

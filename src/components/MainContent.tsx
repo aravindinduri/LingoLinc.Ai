@@ -26,7 +26,7 @@ const MainContent: React.FC = () => {
   return (
     <div className="flex min-h-screen">
       <Sidebar setSection={setSection} />
-      <main className="flex-1 p-8 mt-16 md:ml-60"> {/* Adjust margins */}
+      <main className="flex-1 p-8 mt-16 md:ml-60"> 
         {renderSection()}
       </main>
     </div>

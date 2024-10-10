@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, firestore } from '@/app/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
-import { Button, Typography, Box, Container, CircularProgress, Tooltip } from '@mui/material';
+import { Typography, Box, Container, CircularProgress, Tooltip } from '@mui/material';
 import { CheckCircle, Lock } from '@mui/icons-material';
 
 interface RoadMapProps {
@@ -19,49 +19,62 @@ const RoadMap: React.FC<RoadMapProps> = ({ params }) => {
   const [completedDays, setCompletedDays] = useState<number>(0);
   const [language, setLanguage] = useState<string>(params.language);
   const [loading, setLoading] = useState<boolean>(true);
-  const [lessons, setLessons] = useState<any>(null); 
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const fetchCompletedDays = async () => {
-      if (user && language) {
-        const userRef = doc(firestore, 'users', user.uid);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setCompletedDays(userData.languages?.[language] || 0);
+      try {
+        if (user && language) {
+          const userRef = doc(firestore, 'users', user.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setCompletedDays(userData.languages?.[language] || 0);
+          } else {
+            setError('User data not found.');
+          }
         }
+      } catch (error) {
+        setError('Failed to fetch completed days.');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchCompletedDays();
   }, [user, language]);
 
-  useEffect(() => {
-    const fetchLessons = async () => {
-      if (language) {
-        const response = await fetch('/api/learn', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ language, day: 1 }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setLessons(data);
-        } else {
-          console.error('Failed to fetch lessons');
-        }
-        setLoading(false);  
-      }
-    };
-
-    fetchLessons();
-  }, [language]);
-
   const handleLessonClick = (day: number) => {
-    router.push(`/learn/${language}/${day}`);
+    if (day <= completedDays || day === 1) {  // Allow clicking on Day 1 regardless of completed days
+      router.push(`/learn/${language}/${day}`);
+    }
   };
+
+  if (loading) {
+    return (
+      <Container>
+        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh">
+          <CircularProgress />
+          <Typography variant="body2" className="mt-2">
+            Loading...
+          </Typography>
+        </Box>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container>
+        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh">
+          <Typography variant="body2" color="error">
+            {error}
+          </Typography>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -69,26 +82,24 @@ const RoadMap: React.FC<RoadMapProps> = ({ params }) => {
         Roadmap for {language}
       </Typography>
       <Box display="flex" flexDirection="column" alignItems="center">
-        {loading ? (
-          <CircularProgress />
-        ) : (
-          <div className="roadmap">
-            {Array.from({ length: 30 }, (_, index) => (
-              <div
-                key={index + 1}
-                className={`roadmap-step ${index + 1 <= completedDays ? 'completed' : 'locked'}`}
-                onClick={() => handleLessonClick(index + 1)}
-              >
-                <Tooltip title={index + 1 <= completedDays ? 'Completed' : 'Locked'}>
+        <div className="roadmap">
+          {Array.from({ length: 30 }, (_, index) => (
+            <div
+              key={index + 1}
+              className={`roadmap-step ${index + 1 <= completedDays || index + 1 === 1 ? 'completed' : 'locked'}`}
+              onClick={() => handleLessonClick(index + 1)}
+            >
+              <Tooltip title={index + 1 <= completedDays || index + 1 === 1 ? 'Completed' : 'Locked'}>
+                <div className="flex items-center space-x-2">
                   <Typography variant="body2">
                     Day {index + 1}
                   </Typography>
-                </Tooltip>
-                {index + 1 <= completedDays ? <CheckCircle /> : <Lock />}
-              </div>
-            ))}
-          </div>
-        )}
+                  {index + 1 <= completedDays || index + 1 === 1 ? <CheckCircle /> : <Lock />}
+                </div>
+              </Tooltip>
+            </div>
+          ))}
+        </div>
       </Box>
       <style jsx>{`
         .roadmap {
@@ -107,6 +118,8 @@ const RoadMap: React.FC<RoadMapProps> = ({ params }) => {
           cursor: pointer;
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
           transition: background 0.3s ease;
+          width: 100%;
+          max-width: 200px;
         }
         .roadmap-step.completed {
           background: #4caf50;

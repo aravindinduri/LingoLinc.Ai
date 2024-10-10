@@ -35,8 +35,13 @@ const Learn: React.FC = () => {
         const userRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
-          const userData = userDoc.data() as { languages: string[]; language: string; day: number };
-          setUserLanguages(userData.languages || []);
+          const userData = userDoc.data();
+          const languages = userData.languages || [];
+          if (Array.isArray(languages)) {
+            setUserLanguages(languages);
+          } else {
+            setUserLanguages([]);
+          }
           setLanguage(userData.language || '');
           setDay(userData.day || 1);
         }
@@ -54,15 +59,16 @@ const Learn: React.FC = () => {
     if (user && selectedLanguage) {
       try {
         const userRef = doc(firestore, 'users', user.uid);
+        console.log(userRef)
         await setDoc(userRef, { 
           languages: [...userLanguages, selectedLanguage],
-          language: selectedLanguage,  // Set the current language
+          language: selectedLanguage,  
           day: 1
         }, { merge: true });
         setUserLanguages(prevLanguages => [...prevLanguages, selectedLanguage]);
         setLanguage(selectedLanguage);
         setDay(1);
-        setSelectedLanguage('');  // Clear the selected language
+        setSelectedLanguage(''); 
       } catch (error) {
         console.error("Error selecting language:", error);
       }
@@ -75,7 +81,7 @@ const Learn: React.FC = () => {
   };
 
   return (
-    <div className="p-4" style={{ position: 'relative', overflow: 'hidden', height: '100vh', background: 'linear-gradient(to right, #6a82fb, #fc5c7d)' }}>
+    <div className="p-4" style={{ position: 'relative', overflow: 'hidden', height: '100vh', }}>
       <Typography variant="h4" className="text-center mb-6" style={{ color: theme.palette.primary.main }}>
         Learn
       </Typography>

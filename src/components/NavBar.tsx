@@ -41,7 +41,7 @@ const NavBar: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <Menu.Button>
                     <img
-                      src={user.photoURL || 'https://th.bing.com/th/id/OIP.OZGLuUpIGYOdnRphkYPJ-QAAAA?w=203&h=203&c=7&r=0&o=5&pid=1.7'}
+                      src={user.photoURL || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxJdxLk4Hg-r-7iq2c85fXxafBwnBkLfMZzW-vfSuYB0pmZqueObRDjrhbayS4yYYCdNg&usqp=CAU'}
                       alt="User Avatar"
                       className="w-8 h-8 rounded-full cursor-pointer"
                     />
