@@ -18,7 +18,7 @@ const NavBar: React.FC = () => {
   };
 
   const handleProfileClick = () => {
-    router.push('/pages/profile');
+    // router.push('/pages/profile');
   };
 
   const handleLogoutClick = async () => {
@@ -41,7 +41,7 @@ const NavBar: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <Menu.Button>
                     <img
-                      src={user.photoURL || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxJdxLk4Hg-r-7iq2c85fXxafBwnBkLfMZzW-vfSuYB0pmZqueObRDjrhbayS4yYYCdNg&usqp=CAU'}
+                      src= 'https://lh3.googleusercontent.com/a/ACg8ocJ1G8pQWEaIw4b6HQgsWAv8WG40lH4YFwtcBJxRpwh7DB6FZQ=s96-c'
                       alt="User Avatar"
                       className="w-8 h-8 rounded-full cursor-pointer"
                     />

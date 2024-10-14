@@ -4,22 +4,22 @@
 
 @import 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap';
 
-/* global.css */
-
 
 a {
-  color: #3b82f6; /* Tailwind blue color for links */
+  color: #3b82f6; 
 }
 
 a:hover {
-  color: #2563eb; /* Darker blue for link hover state */
+  color: #2563eb; 
 }
 
 svg {
   overflow: hidden;
   position: absolute;
 }
-
+body  {
+ background:#010815;
+}
 
 
 

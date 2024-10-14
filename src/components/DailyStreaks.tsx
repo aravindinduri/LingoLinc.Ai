@@ -1,15 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import Calendar from 'react-calendar';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, firestore } from '@/app/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
-import 'react-calendar/dist/Calendar.css';
-import { Box, Typography } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  CircularProgress,
+} from '@mui/material';
+import FireIcon from '@mui/icons-material/Fireplace'; // Ensure you have this icon installed
+import WhatshotIcon from '@mui/icons-material/Whatshot';
 import dayjs from 'dayjs';
 
-const DailyStreaksCalendar = () => {
+const DailyStreaks = () => {
   const [user] = useAuthState(auth);
   const [streakDates, setStreakDates] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStreak = async () => {
@@ -26,36 +34,69 @@ const DailyStreaksCalendar = () => {
             : [];
           setStreakDates(completedDates);
         }
+      } else {
+        const dummyStreak = Array.from({ length: 5 }, (_, index) =>
+          dayjs().subtract(index, 'day').format('YYYY-MM-DD')
+        );
+        setStreakDates(dummyStreak);
       }
+      setLoading(false);
     };
 
     fetchStreak();
   }, [user]);
 
-  const tileContent = ({ date, view }: { date: Date; view: string }) => {
-    if (view === 'month' && streakDates.includes(dayjs(date).format('YYYY-MM-DD'))) {
-      return (
-        <div style={{ position: 'relative' }}>
-          <img
-            src="/fire-icon.png" // Replace with your fire icon path
-            alt="streak"
-            style={{ width: '20px', height: '20px', position: 'absolute', top: '0', right: '0' }}
-          />
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
-    <Box>
-      <Typography variant="h6">Daily Streaks</Typography>
-      <Calendar
-        tileContent={tileContent}
-        locale="en-US"
-      />
+    <Box sx={{  width:1000, mx: 'auto', textAlign: 'center', mt: 4 }}>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#333' }}>
+        Your Daily Streaks
+      </Typography>
+      {loading ? (
+        <CircularProgress />
+      ) : (
+        <Grid container spacing={2} justifyContent="center">
+          {streakDates.length > 0 ? (
+            streakDates.map((date, index) => (
+              <Grid item xs={6} sm={4} md={3} key={index}>
+                <Card
+                  sx={{
+                    bgcolor: '#ecf0eb', 
+                    boxShadow: 3,
+                    borderRadius: '20px', 
+                    height: 100, 
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    position: 'relative',
+                  }}
+                >
+                  <WhatshotIcon
+                    sx={{
+                      position: 'absolute',
+                      color: 'orange',
+                      fontSize: 50, 
+                    }}
+                  />
+                  <CardContent>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
+                    </Typography>
+                    <Typography variant="body2" align="center" sx={{ mt: 10 , color :'black' }}>
+                      Keep it up! 🎉
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))
+          ) : (
+            <Typography variant="body1" color="textSecondary">
+              No streaks yet. Start learning to build your streak!
+            </Typography>
+          )}
+        </Grid>
+      )}
     </Box>
   );
 };
 
-export default DailyStreaksCalendar;
+export default DailyStreaks;
