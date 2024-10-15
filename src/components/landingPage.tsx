@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import React from 'react';
 import { Button, Typography, Box, Container, Grid } from '@mui/material';
 import { useSpring, animated } from 'react-spring';
@@ -71,7 +70,7 @@ export default function LandingPage() {
             textShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
           }}
         >
-          Join us on an incredible journey to explore new opportunities. Let's achieve success together!
+          Join us on an incredible journey to explore new opportunities. Let&apos;s achieve success together!
         </Typography>
         <Box sx={{ display: 'flex', gap: '1rem', flexDirection: { xs: 'column', sm: 'row' } }}>
           <Button
@@ -127,7 +126,7 @@ export default function LandingPage() {
             align="center"
             sx={{ mb: 6, maxWidth: '700px', mx: 'auto', color: '#555' }}
           >
-            We offer the best services to ensure you succeed in your journey. Here's why we stand out:
+            We offer the best services to ensure you succeed in your journey. Here&apos;s why we stand out:
           </Typography>
         </animated.div>
 

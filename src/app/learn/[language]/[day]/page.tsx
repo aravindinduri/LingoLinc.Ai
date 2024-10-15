@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // import React, { useEffect, useState } from 'react';
 // import { useRouter } from 'next/navigation';
@@ -186,7 +186,7 @@
 
 //         <Button
 //           variant="contained"
-//           color="secondary"
+//           color="secondary"- It's the second day of our trip.
 //           onClick={handleHome}
 //           size="large"
 //           sx={{ px: 4, py: 1.5 }}
@@ -228,8 +228,8 @@ import { useRouter } from 'next/navigation';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, firestore } from '@/app/firebase/config';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { 
-  Box, Typography, Button, CircularProgress, Snackbar, LinearProgress, 
+import {
+  Box, Typography, Button, CircularProgress, Snackbar, LinearProgress,
   Card, CardContent, Container, Grid, IconButton, Tooltip, Paper,
   useTheme, useMediaQuery
 } from '@mui/material';
@@ -255,6 +255,7 @@ const Lesson = ({ params }: { params: { language: string; day: string } }) => {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
 
   const { language, day } = params;
 
@@ -369,7 +370,7 @@ const Lesson = ({ params }: { params: { language: string; day: string } }) => {
 
   const speakText = (text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language === 'spanish' ? 'es-ES' : 'en-US'; // Add more languages as needed
+    utterance.lang = language === 'spanish' ? 'es-ES' : 'en-US';
     window.speechSynthesis.speak(utterance);
   };
 
@@ -385,7 +386,7 @@ const Lesson = ({ params }: { params: { language: string; day: string } }) => {
   const currentStep = currentWordIndex + currentSentenceIndex + 1;
 
   return (
-    <Container maxWidth="md" style={{height : 1000}}>
+    <Container maxWidth="md" style={{ height: 1000 }}>
       <Box py={4}>
         <Typography variant="h3" mb={4} fontWeight="bold" textAlign="center" color="primary">
           {language.charAt(0).toUpperCase() + language.slice(1)} - Day {day}
@@ -394,10 +395,10 @@ const Lesson = ({ params }: { params: { language: string; day: string } }) => {
         <Paper elevation={3} sx={{ p: 2, mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
           <Typography variant="body1" sx={{ mr: 2, mb: isMobile ? 2 : 0 }}>Progress:</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, mb: isMobile ? 2 : 0 }}>
-            <LinearProgress 
-              variant="determinate" 
-              value={(currentStep / totalSteps) * 100} 
-              sx={{ flexGrow: 1, height: 10, borderRadius: 5 }} 
+            <LinearProgress
+              variant="determinate"
+              value={(currentStep / totalSteps) * 100}
+              sx={{ flexGrow: 1, height: 10, borderRadius: 5 }}
             />
             <Typography variant="body2" sx={{ ml: 2, minWidth: 65 }}>
               {currentStep}/{totalSteps}
@@ -422,14 +423,20 @@ const Lesson = ({ params }: { params: { language: string; day: string } }) => {
                       : 'No word available'}
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                    <IconButton 
-                      onClick={() => speakText(lessonData?.words[currentWordIndex])}
+                    <IconButton
+                      onClick={() => {
+                        const word = lessonData?.words[currentWordIndex];
+                        if (word) {
+                          speakText(word);
+                        }
+                      }}
                       color="primary"
                       aria-label="Pronounce word"
                     >
                       <VolumeUpIcon />
                     </IconButton>
                   </Box>
+
                 </CardContent>
               </Card>
             </Fade>
@@ -448,14 +455,20 @@ const Lesson = ({ params }: { params: { language: string; day: string } }) => {
                       : 'No sentence available'}
                   </Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                    <IconButton 
-                      onClick={() => speakText(lessonData?.sentences[currentSentenceIndex])}
+                    <IconButton
+                      onClick={() => {
+                        const sentence = lessonData?.sentences[currentSentenceIndex];
+                        if (sentence) {
+                          speakText(sentence);
+                        }
+                      }}
                       color="primary"
                       aria-label="Pronounce sentence"
                     >
                       <VolumeUpIcon />
                     </IconButton>
                   </Box>
+
                 </CardContent>
               </Card>
             </Fade>
@@ -507,22 +520,22 @@ const Lesson = ({ params }: { params: { language: string; day: string } }) => {
           </Zoom>
         </Box>
 
-        {currentWordIndex === (lessonData?.words?.length ?? 0) - 1 && 
-         currentSentenceIndex === (lessonData?.sentences?.length ?? 0) - 1 && (
-          <Box textAlign="center" mt={4}>
-            <Zoom in={true} style={{ transitionDelay: '900ms' }}>
-              <Button
-                variant="contained"
-                color="success"
-                onClick={handleNextLesson}
-                sx={{ px: 3, py: 1.5, fontSize: '1rem' }}
-                startIcon={<SchoolIcon />}
-              >
-                Next Lesson
-              </Button>
-            </Zoom>
-          </Box>
-        )}
+        {currentWordIndex === (lessonData?.words?.length ?? 0) - 1 &&
+          currentSentenceIndex === (lessonData?.sentences?.length ?? 0) - 1 && (
+            <Box textAlign="center" mt={4}>
+              <Zoom in={true} style={{ transitionDelay: '900ms' }}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={handleNextLesson}
+                  sx={{ px: 3, py: 1.5, fontSize: '1rem' }}
+                  startIcon={<SchoolIcon />}
+                >
+                  Next Lesson
+                </Button>
+              </Zoom>
+            </Box>
+          )}
 
         <Snackbar
           open={showSnackbar}
@@ -532,20 +545,20 @@ const Lesson = ({ params }: { params: { language: string; day: string } }) => {
         >
           <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
             <AlertTitle>Lesson Completed!</AlertTitle>
-            Great job! You've finished today's lesson.
+            Great job! You&apos;ve finished today&apos;s lesson.
           </Alert>
         </Snackbar>
 
         <Grow in={showStreak}>
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              position: 'fixed', 
-              bottom: 20, 
-              right: 20, 
-              p: 2, 
-              display: 'flex', 
-              alignItems: 'center', 
+          <Paper
+            elevation={3}
+            sx={{
+              position: 'fixed',
+              bottom: 20,
+              right: 20,
+              p: 2,
+              display: 'flex',
+              alignItems: 'center',
               backgroundColor: 'success.light',
               borderRadius: '20px'
             }}

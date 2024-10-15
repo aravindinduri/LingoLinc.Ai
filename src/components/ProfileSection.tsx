@@ -2,7 +2,10 @@
 
 import React, { useState } from 'react';
 import {  Mail, MapPin, Calendar, Edit2, Camera } from 'lucide-react';
-
+interface InfoItemProps {
+  icon: React.ReactNode; 
+  text: string;         
+}
 const ProfileSection = () => {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -102,11 +105,12 @@ const ProfileSection = () => {
   );
 };
 
-const InfoItem = ({ icon, text }) => (
+const InfoItem: React.FC<InfoItemProps> = ({ icon, text }) => (
   <div className="flex items-center space-x-2 text-gray-700">
     {icon}
     <span>{text}</span>
   </div>
 );
+
 
 export default ProfileSection;

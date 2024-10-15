@@ -15,19 +15,19 @@ const DailyStreaks = () => {
 
   useEffect(() => {
     const fetchStreak = async () => {
-      if (!user) {
-        const userRef = doc(firestore, 'users', user.uid);
-        const userDoc = await getDoc(userRef);
+      if (user) {
+        // const userRef = doc(firestore, 'users', user.uid);
+        // const userDoc = await getDoc(userRef);
 
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const completedDates : any = userData.languages
-            ? Object.values(userData.languages).flatMap((lang : any) =>
-                lang.lessonsCompletedOn || []
-              )
-            : [];
-          setStreakDates(completedDates);
-        }
+        // if (userDoc.exists()) {
+        //   const userData = userDoc.data();
+        //   const completedDates : any = userData.languages
+        //     ? Object.values(userData.languages).flatMap((lang : any) =>
+        //         lang.lessonsCompletedOn || []
+        //       )
+        //     : [];
+        //   setStreakDates(completedDates);
+        // }
       } else {
         const dummyStreak : any = Array.from({ length: 5 }, (_, index) =>
           dayjs().subtract(index, 'day').format('YYYY-MM-DD')

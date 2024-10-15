@@ -15,7 +15,7 @@ export const Logo: React.FC<LogoProps> = ({ onClick }) => {
       onClick={() => onClick ? onClick() : router.push('/')}
     >
 
-<img className=' w-16' src="https://i.ibb.co/7Stn76P/lingolinc.png" alt="lingolinc" />   
+<img className='w-16' src="https://i.ibb.co/7Stn76P/lingolinc.png" alt="lingolinc" />   
 
 </div>
   );
