@@ -17,6 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="https://i.ibb.co/7Stn76P/lingolinc.png" sizes="any" /> {/* Link to your favicon */}
+      </head>
       <body className={inter.className}>
         <NavBar />
         {children}

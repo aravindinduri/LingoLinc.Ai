@@ -17,7 +17,7 @@ const NavBar: React.FC = () => {
   };
 
   const handleProfileClick = () => {
-    // router.push('/pages/profile');
+    router.push('/pages/profile');
   };
 
   const handleLogoutClick = async () => {
