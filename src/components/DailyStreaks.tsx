@@ -2,40 +2,32 @@ import React, { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, firestore } from '@/app/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  CircularProgress,
-} from '@mui/material';
-import FireIcon from '@mui/icons-material/Fireplace'; // Ensure you have this icon installed
-import WhatshotIcon from '@mui/icons-material/Whatshot';
+import { Flame } from 'lucide-react';
 import dayjs from 'dayjs';
 
 const DailyStreaks = () => {
   const [user] = useAuthState(auth);
-  const [streakDates, setStreakDates] = useState<string[]>([]);
+  const [streakDates, setStreakDates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedStreak, setSelectedStreak] = useState(null);
 
   useEffect(() => {
     const fetchStreak = async () => {
-      if (user) {
+      if (!user) {
         const userRef = doc(firestore, 'users', user.uid);
         const userDoc = await getDoc(userRef);
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          const completedDates = userData.languages
-            ? Object.values(userData.languages).flatMap((lang: any) =>
+          const completedDates : any = userData.languages
+            ? Object.values(userData.languages).flatMap((lang : any) =>
                 lang.lessonsCompletedOn || []
               )
             : [];
           setStreakDates(completedDates);
         }
       } else {
-        const dummyStreak = Array.from({ length: 5 }, (_, index) =>
+        const dummyStreak : any = Array.from({ length: 5 }, (_, index) =>
           dayjs().subtract(index, 'day').format('YYYY-MM-DD')
         );
         setStreakDates(dummyStreak);
@@ -46,56 +38,67 @@ const DailyStreaks = () => {
     fetchStreak();
   }, [user]);
 
+  const handleStreakClick = (date : any) => {
+    setSelectedStreak(date === selectedStreak ? null : date);
+  };
+
   return (
-    <Box sx={{  width:1000, mx: 'auto', textAlign: 'center', mt: 4 }}>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#333' }}>
+    <div className="max-w-4xl mx-auto mt-8 p-6 bg-gray-100 rounded-xl shadow-lg">
+      <h2 className="text-3xl font-bold text-center mb-6 text-indigo-700">
         Your Daily Streaks
-      </Typography>
+      </h2>
       {loading ? (
-        <CircularProgress />
+        <div className="flex justify-center items-center h-40">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-700"></div>
+        </div>
       ) : (
-        <Grid container spacing={2} justifyContent="center">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {streakDates.length > 0 ? (
             streakDates.map((date, index) => (
-              <Grid item xs={6} sm={4} md={3} key={index}>
-                <Card
-                  sx={{
-                    bgcolor: '#ecf0eb', 
-                    boxShadow: 3,
-                    borderRadius: '20px', 
-                    height: 100, 
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    position: 'relative',
-                  }}
-                >
-                  <WhatshotIcon
-                    sx={{
-                      position: 'absolute',
-                      color: 'orange',
-                      fontSize: 50, 
-                    }}
+              <div
+                key={index}
+                className={`relative cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-105 ${
+                  selectedStreak === date ? 'ring-4 ring-indigo-500' : ''
+                }`}
+                onClick={() => handleStreakClick(date)}
+              >
+                <div className="bg-white rounded-lg shadow-md p-4 h-full flex flex-col justify-between items-center">
+                  <Flame
+                    className={`w-12 h-12 ${
+                      selectedStreak === date
+                        ? 'text-red-500 animate-pulse'
+                        : 'text-orange-400'
+                    }`}
                   />
-                  <CardContent>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
-                    </Typography>
-                    <Typography variant="body2" align="center" sx={{ mt: 10 , color :'black' }}>
-                      Keep it up! 🎉
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
+                  <div className="text-center mt-12">
+                    <p className="font-semibold text-indigo-700">
+                      {dayjs(date).format('MMM D')}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {index === 0 ? 'Today' : `${index + 1} days ago`}
+                    </p>
+                  </div>
+                </div>
+                {selectedStreak === date && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
+                    <p className="text-white text-center px-2">
+                      Great job! Keep the streak going! 🎉
+                    </p>
+                  </div>
+                )}
+              </div>
             ))
           ) : (
-            <Typography variant="body1" color="textSecondary">
-              No streaks yet. Start learning to build your streak!
-            </Typography>
+            <div className="col-span-full text-center text-gray-600">
+              <p>No streaks yet. Start learning to build your streak!</p>
+              <button className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-300">
+                Start Learning
+              </button>
+            </div>
           )}
-        </Grid>
+        </div>
       )}
-    </Box>
+    </div>
   );
 };
 

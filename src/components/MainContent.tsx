@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import DailyStreaksCalendar from './DailyStreaks';
 import Learn from './Learn';
-
+import ProfileSection from './ProfileSection';
 const MainContent: React.FC = () => {
   const [section, setSection] = useState<string>('learn');
 
@@ -17,7 +17,7 @@ const MainContent: React.FC = () => {
       case 'streaks':
         return <div><DailyStreaksCalendar/></div>;
       case 'profile':
-        return <div>Profile Section</div>;
+        return <div><ProfileSection/></div>;
       default:
         return <div>Learn Section</div>;
     }

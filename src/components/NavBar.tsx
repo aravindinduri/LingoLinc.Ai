@@ -41,7 +41,7 @@ const NavBar: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <Menu.Button>
                     <img
-                      src= 'https://lh3.googleusercontent.com/a/ACg8ocJ1G8pQWEaIw4b6HQgsWAv8WG40lH4YFwtcBJxRpwh7DB6FZQ=s96-c'
+                      src= 'https://i.ibb.co/ZM5ngJS/download.jpg'
                       alt="User Avatar"
                       className="w-8 h-8 rounded-full cursor-pointer"
                     />

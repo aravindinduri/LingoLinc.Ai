@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import {
   BottomNavigation,
   BottomNavigationAction,
@@ -9,12 +10,12 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-
-import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
-import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded';
-import WhatshotRoundedIcon from '@mui/icons-material/WhatshotRounded';
-import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
-import React, { useState } from 'react';
+import { 
+  Book, 
+  PenTool, 
+  Activity, 
+  User
+} from 'lucide-react';
 
 interface SidebarProps {
   setSection: React.Dispatch<React.SetStateAction<string>>;
@@ -30,9 +31,36 @@ const Sidebar: React.FC<SidebarProps> = ({ setSection }) => {
     setValue(section);
   };
 
+  const sidebarStyle = {
+    background: '#092b46', 
+    color: 'white',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+  };
+
+  const listItemStyle = (isActive: boolean) => ({
+    margin: '8px 16px',
+    borderRadius: '8px',
+    transition: 'all 0.3s ease',
+    backgroundColor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    },
+  });
+
+  const iconStyle = (isActive: boolean) => ({
+    color: isActive ? '#3498db' : 'white',
+    transition: 'all 0.3s ease',
+  });
+
+  const navItems = [
+    { id: 'learn', icon: Book, label: 'Learn' },
+    { id: 'practice', icon: PenTool, label: 'Practice' },
+    { id: 'streaks', icon: Activity, label: 'Streaks' },
+    { id: 'profile', icon: User, label: 'Profile' },
+  ];
+
   return isMobile ? (
     <BottomNavigation
-      showLabels
       value={value}
       onChange={(event, newValue) => {
         handleListItemClick(newValue);
@@ -43,33 +71,23 @@ const Sidebar: React.FC<SidebarProps> = ({ setSection }) => {
         left: 0,
         right: 0,
         zIndex: 1100,
-        bgcolor: '#1F2937'
+        height: '64px',
+        ...sidebarStyle,
       }}
     >
-      <BottomNavigationAction
-        label=""
-        value="learn"
-        icon={<TrendingUpRoundedIcon style={{ color: 'white' }} />}
-        sx={{ color: 'white' }}
-      />
-      <BottomNavigationAction
-        label=""
-        value="practice"
-        icon={<RestartAltRoundedIcon style={{ color: 'white' }} />}
-        sx={{ color: 'white' }}
-      />
-      <BottomNavigationAction
-        label=""
-        value="streaks"
-        icon={<WhatshotRoundedIcon style={{ color: 'white' }} />}
-        sx={{ color: 'white' }}
-      />
-      <BottomNavigationAction
-        label=""
-        value="profile"
-        icon={<AccountCircleRoundedIcon style={{ color: 'white' }} />}
-        sx={{ color: 'white' }}
-      />
+      {navItems.map((item) => (
+        <BottomNavigationAction
+          key={item.id}
+          value={item.id}
+          icon={<item.icon size={24} style={iconStyle(value === item.id)} />}
+          sx={{ 
+            color: 'white',
+            '&.Mui-selected': {
+              color: '#3498db',
+            }
+          }}
+        />
+      ))}
     </BottomNavigation>
   ) : (
     <Drawer
@@ -80,40 +98,36 @@ const Sidebar: React.FC<SidebarProps> = ({ setSection }) => {
         '& .MuiDrawer-paper': {
           width: 240,
           boxSizing: 'border-box',
-          bgcolor: '#1F2937',
-          marginTop: '64px', // Adjust to ensure it does not overlap the navbar
-          zIndex: 10 // Ensure sidebar is below the navbar
+          ...sidebarStyle,
+          marginTop: '64px',
+          zIndex: 10
         }
       }}
     >
-      <div className="flex flex-col h-full">
-        <List>
-          <ListItem button onClick={() => handleListItemClick('learn')}>
-            <ListItemIcon>
-              <TrendingUpRoundedIcon style={{ color: 'white',fontSize:'30px' }} />
+      <List>
+        {navItems.map((item) => (
+          <ListItem
+            button
+            key={item.id}
+            onClick={() => handleListItemClick(item.id)}
+            sx={listItemStyle(value === item.id)}
+          >
+            <ListItemIcon sx={{ minWidth: '40px' }}>
+              <item.icon size={24} style={iconStyle(value === item.id)} className=' -mt-[10px]' />
             </ListItemIcon>
-            <ListItemText primary="Learn" sx={{ color: 'white' }} />
+            <ListItemText 
+              primary={item.label} 
+              sx={{ 
+                '& .MuiListItemText-primary': { 
+                  fontWeight: value === item.id ? 'bold' : 'normal',
+                  fontSize: '16px',
+                  color: value === item.id ? '#3498db' : 'white',
+                } 
+              }} 
+            />
           </ListItem>
-          <ListItem button onClick={() => handleListItemClick('practice')}>
-            <ListItemIcon>
-              <RestartAltRoundedIcon style={{ color: 'white' }} />
-            </ListItemIcon>
-            <ListItemText primary="Practice" sx={{ color: 'white' }} />
-          </ListItem>
-          <ListItem button onClick={() => handleListItemClick('streaks')}>
-            <ListItemIcon>
-              <WhatshotRoundedIcon style={{ color: 'white' }} />
-            </ListItemIcon>
-            <ListItemText primary="Daily Streaks" sx={{ color: 'white' }} />
-          </ListItem>
-          <ListItem button onClick={() => handleListItemClick('profile')}>
-            <ListItemIcon>
-              <AccountCircleRoundedIcon style={{ color: 'white' }} />
-            </ListItemIcon>
-            <ListItemText primary="Profile" sx={{ color: 'white' }} />
-          </ListItem>
-        </List>
-      </div>
+        ))}
+      </List>
     </Drawer>
   );
 };
