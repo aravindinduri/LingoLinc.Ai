@@ -5,6 +5,7 @@ import Sidebar from './Sidebar';
 import DailyStreaksCalendar from './DailyStreaks';
 import Learn from './Learn';
 import ProfileSection from './ProfileSection';
+import PracticeSection from './PracticeSection';
 const MainContent: React.FC = () => {
   const [section, setSection] = useState<string>('learn');
 
@@ -13,7 +14,7 @@ const MainContent: React.FC = () => {
       case 'learn':
         return <div><Learn/></div>;
       case 'practice':
-        return <div>Practice Section</div>;
+        return <div><PracticeSection/></div>;
       case 'streaks':
         return <div><DailyStreaksCalendar/></div>;
       case 'profile':

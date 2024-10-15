@@ -1,4 +1,3 @@
-// components/NavBar.tsx
 "use client";
 
 import { Disclosure, Menu, Transition } from '@headlessui/react';

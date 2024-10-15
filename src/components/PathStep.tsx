@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Tooltip } from '@mui/material';
 import { CheckCircle, Lock } from '@mui/icons-material';

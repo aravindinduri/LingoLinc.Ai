@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Box, Button, Typography } from '@mui/material';
-import { PathStep } from './PathStep';  // Import the styled PathStep component
+import { PathStep } from './PathStep'; 
 
 interface RoadMapProps {
   language: string;
@@ -28,14 +28,14 @@ const RoadMap: React.FC<RoadMapProps> = ({ language, days }) => {
       });
       const data = await response.json();
       setCompletedDays(data);
-      setCurrentDay(data[language] || 1);  // Set the current day based on fetched data
+      setCurrentDay(data[language] || 1);  
     };
 
     fetchCompletedDays();
   }, [language]);
 
   const handleStepClick = (day: number) => {
-    router.push(`/learn/${language}/${day}`);  // Navigate to the lesson page for the selected day
+    router.push(`/learn/${language}/${day}`);
   };
 
   return (

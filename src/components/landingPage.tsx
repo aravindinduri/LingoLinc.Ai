@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Button, Typography, Box, Container, Grid } from '@mui/material';
 import { useSpring, animated } from 'react-spring';
@@ -30,12 +32,45 @@ export default function LandingPage() {
           textAlign: 'center',
           padding: '2rem',
           color: 'white',
+          backdropFilter: 'blur(10px)',
+          position: 'relative',
         }}
       >
-        <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: -1,
+          }}
+        />
+        <Typography
+          variant="h2"
+          component="h1"
+          gutterBottom
+          sx={{
+            fontWeight: 'bold',
+            fontSize: { xs: '2.5rem', sm: '4rem' },
+            letterSpacing: '0.1rem',
+            mb: '1.5rem',
+            textShadow: '0px 4px 6px rgba(0, 0, 0, 0.3)',
+          }}
+        >
           Welcome to Lingolinc
         </Typography>
-        <Typography variant="h5" component="p" gutterBottom sx={{ maxWidth: '600px', marginBottom: '2rem' }}>
+        <Typography
+          variant="h5"
+          component="p"
+          sx={{
+            maxWidth: '600px',
+            marginBottom: '2rem',
+            fontSize: { xs: '1.2rem', sm: '1.5rem' },
+            textShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
+          }}
+        >
           Join us on an incredible journey to explore new opportunities. Let's achieve success together!
         </Typography>
         <Box sx={{ display: 'flex', gap: '1rem', flexDirection: { xs: 'column', sm: 'row' } }}>
@@ -47,23 +82,27 @@ export default function LandingPage() {
               padding: '0.75rem 2rem',
               borderRadius: '30px',
               fontWeight: 'bold',
+              fontSize: '1rem',
               backgroundColor: '#1976d2',
-              '&:hover': { backgroundColor: '#115293' },
+              boxShadow: '0px 8px 15px rgba(0, 0, 0, 0.2)',
+              '&:hover': { backgroundColor: '#115293', boxShadow: '0px 12px 20px rgba(0, 0, 0, 0.3)' },
+              transition: 'all 0.3s ease',
             }}
           >
             Get Started
           </Button>
           <Button
             variant="outlined"
-            color="secondary"
             size="large"
             sx={{
               padding: '0.75rem 2rem',
               borderRadius: '30px',
               fontWeight: 'bold',
+              fontSize: '1rem',
               color: 'white',
               borderColor: 'white',
-              '&:hover': { borderColor: '#ccc' },
+              '&:hover': { borderColor: '#ccc', backgroundColor: 'rgba(255, 255, 255, 0.2)' },
+              transition: 'all 0.3s ease',
             }}
           >
             Learn More
@@ -73,14 +112,25 @@ export default function LandingPage() {
 
       <Container sx={{ py: 8 }}>
         <animated.div style={fadeIn}>
-          <Typography variant="h4" color='white' component="h2" align="center" gutterBottom>
+          <Typography
+            variant="h4"
+            component="h2"
+            align="center"
+            gutterBottom
+            sx={{ fontWeight: 'bold', color: '#333', mb: 4 }}
+          >
             Why Choose Us?
           </Typography>
-          <Typography variant="h6"color='white' component="p" align="center" sx={{ mb: 4, maxWidth: '600px', mx: 'auto' }}>
+          <Typography
+            variant="h6"
+            component="p"
+            align="center"
+            sx={{ mb: 6, maxWidth: '700px', mx: 'auto', color: '#555' }}
+          >
             We offer the best services to ensure you succeed in your journey. Here's why we stand out:
           </Typography>
         </animated.div>
-        
+
         <animated.div style={scaleUp}>
           <Grid container spacing={4}>
             <Grid item xs={12} sm={4}>
@@ -88,54 +138,70 @@ export default function LandingPage() {
                 sx={{
                   textAlign: 'center',
                   padding: '2rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '10px',
-                  backgroundColor: '#f9f9f9',
-                  boxShadow: '0px 4px 12px rgba(0,0,0,0.1)',
+                  borderRadius: '15px',
+                  backgroundColor: 'white',
+                  boxShadow: '0px 8px 24px rgba(0,0,0,0.1)',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-10px)',
+                    boxShadow: '0px 12px 32px rgba(0,0,0,0.2)',
+                  },
                 }}
               >
-                <Typography variant="h6" component="h3" gutterBottom>
+                <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
                   Quality
                 </Typography>
-                <Typography variant="body1" component="p">
+                <Typography variant="body1" component="p" sx={{ color: '#777' }}>
                   We ensure top-notch quality in everything we offer, from products to customer support.
                 </Typography>
               </Box>
             </Grid>
+
+            {/* Feature 2 */}
             <Grid item xs={12} sm={4}>
               <Box
                 sx={{
                   textAlign: 'center',
                   padding: '2rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '10px',
-                  backgroundColor: '#f9f9f9',
-                  boxShadow: '0px 4px 12px rgba(0,0,0,0.1)',
+                  borderRadius: '15px',
+                  backgroundColor: 'white',
+                  boxShadow: '0px 8px 24px rgba(0,0,0,0.1)',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-10px)',
+                    boxShadow: '0px 12px 32px rgba(0,0,0,0.2)',
+                  },
                 }}
               >
-                <Typography variant="h6" component="h3" gutterBottom>
+                <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
                   Innovation
                 </Typography>
-                <Typography variant="body1" component="p">
+                <Typography variant="body1" component="p" sx={{ color: '#777' }}>
                   We are always innovating to bring you the latest and greatest in our field.
                 </Typography>
               </Box>
             </Grid>
+
+            {/* Feature 3 */}
             <Grid item xs={12} sm={4}>
               <Box
                 sx={{
                   textAlign: 'center',
                   padding: '2rem',
-                  border: '1px solid #ddd',
-                  borderRadius: '10px',
-                  backgroundColor: '#f9f9f9',
-                  boxShadow: '0px 4px 12px rgba(0,0,0,0.1)',
+                  borderRadius: '15px',
+                  backgroundColor: 'white',
+                  boxShadow: '0px 8px 24px rgba(0,0,0,0.1)',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-10px)',
+                    boxShadow: '0px 12px 32px rgba(0,0,0,0.2)',
+                  },
                 }}
               >
-                <Typography variant="h6" component="h3" gutterBottom>
+                <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
                   Support
                 </Typography>
-                <Typography variant="body1" component="p">
+                <Typography variant="body1" component="p" sx={{ color: '#777' }}>
                   Our support team is always here to help you with any issues or questions you may have.
                 </Typography>
               </Box>

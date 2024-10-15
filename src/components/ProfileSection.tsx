@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import {  Mail, MapPin, Calendar, Edit2, Camera } from 'lucide-react';
 
