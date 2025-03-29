@@ -65,10 +65,10 @@ const PathStep: React.FC<PathStepProps> = ({ step, completedDays, handleLessonCl
     <div
       className={`roadmap-step ${isCompleted ? 'completed' : 'locked'}`}
       style={{ left: `${step.x}%`, top: `${step.y}%` }}
-      onClick={() => isCompleted && handleLessonClick(step.id)} // Prevent click on locked steps
+      onClick={() => isCompleted && handleLessonClick(step.id)}
       role="button"
-      tabIndex={0} // Make it keyboard accessible
-      onKeyPress={(e) => { if (e.key === 'Enter') handleLessonClick(step.id); }} // Handle Enter key for accessibility
+      tabIndex={0} 
+      onKeyPress={(e) => { if (e.key === 'Enter') handleLessonClick(step.id); }}
       aria-label={isCompleted ? `Day ${step.id} Completed` : `Day ${step.id} Locked`}
     >
       <Tooltip title={isCompleted ? 'Completed' : 'Locked'}>
@@ -76,7 +76,7 @@ const PathStep: React.FC<PathStepProps> = ({ step, completedDays, handleLessonCl
           {isCompleted ? <CheckCircle /> : <Lock />}
         </div>
       </Tooltip>
-      <div>{children}</div> {/* Render children here */}
+      <div>{children}</div> 
       <style jsx>{`
         .roadmap-step {
           position: absolute;

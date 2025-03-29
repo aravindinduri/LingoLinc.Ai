@@ -6,7 +6,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, firestore } from '@/app/firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
 import { Typography, Box, Container, CircularProgress, Tooltip } from '@mui/material';
-import { CheckCircle, Lock } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 
 interface RoadMapProps {
   params: {
@@ -14,10 +14,23 @@ interface RoadMapProps {
   };
 }
 
+const TOTAL_LESSONS = 10;
+
+// Helper function: Create a stepped, zigzag path connecting points.
+const createZigzagPath = (points: { x: number; y: number }[]) => {
+  if (points.length === 0) return "";
+  let d = `M ${points[0].x},${points[0].y}`;
+  for (let i = 1; i < points.length; i++) {
+    // Draw a horizontal line to the new point's x coordinate, then a vertical line to the new point's y.
+    d += ` H ${points[i].x} V ${points[i].y}`;
+  }
+  return d;
+};
+
 const RoadMap: React.FC<RoadMapProps> = ({ params }) => {
   const [user] = useAuthState(auth);
   const [completedLessons, setCompletedLessons] = useState<number>(0);
-  const [language, setLanguage] = useState<string>(params.language);
+  const [language] = useState<string>(params.language);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -60,10 +73,8 @@ const RoadMap: React.FC<RoadMapProps> = ({ params }) => {
     return (
       <Container>
         <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh">
-          <CircularProgress />
-          <Typography variant="body2" className="mt-2">
-            Loading...
-          </Typography>
+          <CircularProgress color="inherit" />
+          <Typography variant="body2" sx={{ mt: 2, color: '#ccc' }}>Loading...</Typography>
         </Box>
       </Container>
     );
@@ -73,146 +84,107 @@ const RoadMap: React.FC<RoadMapProps> = ({ params }) => {
     return (
       <Container>
         <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100vh">
-          <Typography variant="body2" color="error">
-            {error}
-          </Typography>
+          <Typography variant="body2" color="error">{error}</Typography>
         </Box>
       </Container>
     );
   }
 
+  // Increase vertical spacing by using a larger SVG viewBox.
+  // ViewBox height increased to 150 (from 100).
+  const viewBoxHeight = 150;
+  const verticalMargin = 5;
+  const verticalInterval = (viewBoxHeight - 2 * verticalMargin) / (TOTAL_LESSONS - 1);
+  const points = Array.from({ length: TOTAL_LESSONS }, (_, index) => {
+    const lessonNumber = index + 1;
+    // Alternate x position: odd nodes left (30) and even nodes right (70)
+    const x = lessonNumber % 2 === 0 ? 70 : 30;
+    const y = verticalMargin + index * verticalInterval;
+    return { x, y };
+  });
+
+  // Generate the stepped, zigzag path from computed points.
+  const pathD = createZigzagPath(points);
+
+  // Determine current lesson and avatar position.
+  const currentLesson = completedLessons + 1 > TOTAL_LESSONS ? TOTAL_LESSONS : completedLessons + 1;
+  const currentPoint = points[currentLesson - 1];
+  // Offset the avatar slightly so it appears above the node.
+  const avatarOffsetY = -5;
+
   return (
-    <Container>
-      <Typography variant="h4" className="text-center mb-4">
-        Roadmap for {language}
-      </Typography>
-      <Box className="roadmap-container">
-        <div className="roadmap">
-          {Array.from({ length: 30 }, (_, index) => (
-            <Tooltip
-              key={index + 1}
-              title={index + 1 <= completedLessons ? 'Completed' : index + 1 === completedLessons + 1 ? 'Next Lesson' : 'Locked'}
-            >
-              <div
-                className={`roadmap-step ${index + 1 <= completedLessons || index + 1 === completedLessons + 1 ? 'completed' : 'locked'}`}
-                onClick={() => handleLessonClick(index + 1)}
+    <Container disableGutters maxWidth={false}>
+      <Box
+        height="100vh"
+        position="relative"
+        overflow="hidden"
+        sx={{ background: 'linear-gradient(to bottom, #121212, #000)' }}
+      >
+        <Typography variant="h4" align="center" sx={{ pt: 2, color: '#fff', zIndex: 2, position: 'relative' }}>
+          Learning Path for {language}
+        </Typography>
+        <svg viewBox={`0 0 100 ${viewBoxHeight}`} style={{ width: '100%', height: '90vh', display: 'block', margin: 'auto' }}>
+          {/* Stepped Zigzag Path */}
+          <path d={pathD} fill="none" stroke="#555" strokeWidth="1.8" strokeDasharray="4,2" />
+          
+          {/* Lesson Nodes */}
+          {points.map((point, index) => {
+            const lessonNumber = index + 1;
+            const isAccessible = lessonNumber <= completedLessons + 1;
+            const fillColor =
+              lessonNumber <= completedLessons
+                ? '#4caf50'
+                : lessonNumber === completedLessons + 1
+                ? '#1976d2'
+                : '#555';
+            return (
+              <Tooltip
+                key={lessonNumber}
+                title={
+                  lessonNumber <= completedLessons
+                    ? 'Completed'
+                    : lessonNumber === completedLessons + 1
+                    ? 'Next Lesson'
+                    : 'Locked'
+                }
               >
-                <div className="step-content">
-                  <Typography variant="body2">
-                    Day {index + 1}
-                  </Typography>
-                  {index + 1 <= completedLessons ? <CheckCircle /> : index + 1 === completedLessons + 1 ? <CheckCircle color="primary" /> : <Lock />}
-                </div>
-              </div>
-            </Tooltip>
-          ))}
-        </div>
+                <motion.circle
+                  cx={point.x}
+                  cy={point.y}
+                  r="5"
+                  fill={fillColor}
+                  stroke="#fff"
+                  strokeWidth="1.5"
+                  style={{
+                    cursor: isAccessible ? 'pointer' : 'not-allowed',
+                    filter: isAccessible ? 'drop-shadow(0 0 4px rgba(255,255,255,0.8))' : 'none'
+                  }}
+                  whileHover={isAccessible ? { scale: 1.4, filter: 'drop-shadow(0 0 8px rgba(255,255,255,1))' } : {}}
+                  whileTap={isAccessible ? { scale: 0.9 } : {}}
+                  onClick={() => handleLessonClick(lessonNumber)}
+                />
+              </Tooltip>
+            );
+          })}
+        </svg>
+
+        {/* Animated Character Avatar */}
+        <motion.div
+          className="avatar"
+          initial={{ x: 0, y: 0 }}
+          animate={{ x: currentPoint.x, y: currentPoint.y + avatarOffsetY }}
+          transition={{ type: 'spring', stiffness: 120, damping: 12 }}
+          style={{ position: 'absolute', fontSize: '2.5rem' }}
+        >
+          🐶
+        </motion.div>
+
+        <style jsx>{`
+          .avatar {
+            transform: translate(-50%, -50%);
+          }
+        `}</style>
       </Box>
-      <style jsx>{`
-        .roadmap-container {
-          display: flex;
-          justify-content: center;
-          padding: 20px 0;
-        }
-        .roadmap {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          position: relative;
-          padding: 20px;
-        }
-        .roadmap::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          left: 50%;
-          width: 2px;
-          background: #e0e0e0;
-          transform: translateX(-50%);
-          z-index: 0;
-        }
-        .roadmap-step {
-          background: #1976d2;
-          color: white;
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-          transition: all 0.3s ease;
-          position: relative;
-          z-index: 1;
-          margin: 20px 0;
-        }
-        .roadmap-step::before,
-        .roadmap-step::after {
-          content: '';
-          position: absolute;
-          background: #e0e0e0;
-          z-index: -1;
-        }
-        .roadmap-step::before {
-          width: 100px;
-          height: 2px;
-          top: 50%;
-        }
-        .roadmap-step::after {
-          width: 2px;
-          height: 100px;
-          left: 50%;
-        }
-        .roadmap-step:nth-child(odd) {
-          margin-right: 60px;
-        }
-        .roadmap-step:nth-child(even) {
-          margin-left: 60px;
-        }
-        .roadmap-step:nth-child(odd)::before {
-          left: 100%;
-          transform: translateY(-50%);
-          border-top-right-radius: 50px;
-          border-bottom-right-radius: 50px;
-        }
-        .roadmap-step:nth-child(even)::before {
-          right: 100%;
-          transform: translateY(-50%);
-          border-top-left-radius: 50px;
-          border-bottom-left-radius: 50px;
-        }
-        .roadmap-step:nth-child(odd)::after {
-          top: -50px;
-          transform: translateX(-50%);
-          border-top-left-radius: 50px;
-          border-top-right-radius: 50px;
-        }
-        .roadmap-step:not(:last-child):nth-child(even)::after {
-          bottom: -50px;
-          transform: translateX(-50%);
-          border-bottom-left-radius: 50px;
-          border-bottom-right-radius: 50px;
-        }
-        .roadmap-step.completed {
-          background: #4caf50;
-        }
-        .roadmap-step.locked {
-          background: #e0e0e0;
-          color: #000;
-          cursor: not-allowed;
-        }
-        .roadmap-step:hover {
-          transform: scale(1.1);
-        }
-        .step-content {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-        }
-      `}</style>
     </Container>
   );
 };

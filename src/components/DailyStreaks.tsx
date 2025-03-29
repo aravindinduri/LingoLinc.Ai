@@ -15,7 +15,7 @@ const DailyStreaks = () => {
 
   useEffect(() => {
     const fetchStreak = async () => {
-      if (user) {
+      if (!user) {
         // const userRef = doc(firestore, 'users', user.uid);
         // const userDoc = await getDoc(userRef);
 

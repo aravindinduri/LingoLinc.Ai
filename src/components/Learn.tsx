@@ -212,7 +212,6 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, firestore } from '@/app/firebase/config';
 import { doc, getDoc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { ChevronDown, Plus, BookOpen } from 'lucide-react';
-// import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Learn = () => {
   const [user] = useAuthState(auth);

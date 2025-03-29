@@ -129,16 +129,16 @@ const SignIn = () => {
           className="w-full flex items-center justify-center p-2 bg-white/20 rounded-lg border border-gray-600 text-gray-200 font-medium hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-200 ease-in-out"
           disabled={googleLoading}
         >
-          {/* <img 
+          <img 
             src="https://pngimg.com/uploads/google/google_PNG19635.png" 
             alt="Google Logo" 
             className="w-5 h-5 mr-2"
-          /> */}
-          <Image 
+          />
+          {/* <Image 
             src="https://pngimg.com/uploads/google/google_PNG19635.png" 
             alt="Profile" 
             className="w-5 h-5 mr-2"
-            />
+            /> */}
           {googleLoading ? 'Signing In with Google...' : 'Sign in with Google'}
         </button>
         <p className="text-sm text-center text-gray-400 mt-6">
