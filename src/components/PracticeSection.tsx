@@ -3,51 +3,68 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, firestore } from '@/app/firebase/config';
-import { collection, doc, setDoc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, getDoc, onSnapshot, serverTimestamp, query, where } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { motion } from 'framer-motion';
 
 interface LanguageSpace {
+  id?: string;
   language: string;
-  activeSpeakers: number;
-  listeners: number;
-  status: string;
+  activeSpeakers: string[];
+  listeners: string[];
+  status: 'active' | 'scheduled';
   topic: string;
-  roomId?: string;
+  hostId?: string;
 }
+
+const DEFAULT_LANGUAGES = [
+  'Spanish',
+  'French',
+  'German',
+  'Italian',
+  'Japanese',
+  'Chinese',
+  'Korean',
+  'Russian'
+];
 
 function PracticeSection() {
   const router = useRouter();
   const [user] = useAuthState(auth);
-  const [languageSpaces, setLanguageSpaces] = useState<LanguageSpace[]>([
-    {
-      language: 'German',
-      activeSpeakers: 3,
-      listeners: 12,
-      status: 'active',
-      topic: 'Daily Conversations in German'
-    },
-    {
-      language: 'French',
-      activeSpeakers: 2,
-      listeners: 8,
-      status: 'active',
-      topic: 'French Culture Discussion'
-    },
-    {
-      language: 'Spanish',
-      activeSpeakers: 4,
-      listeners: 15,
-      status: 'active',
-      topic: 'Spanish Practice for Beginners'
-    },
-    {
-      language: 'Japanese',
-      activeSpeakers: 2,
-      listeners: 10,
-      status: 'active',
-      topic: 'Japanese Conversation Exchange'
-    }
-  ]);
+  const [spaces, setSpaces] = useState<LanguageSpace[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Subscribe to active spaces
+    const spacesRef = collection(firestore, 'languageSpaces');
+    const activeSpacesQuery = query(spacesRef, where("status", "==", "active"));
+    
+    const unsubscribe = onSnapshot(activeSpacesQuery, (snapshot) => {
+      const spacesData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as LanguageSpace[];
+      
+      if (spacesData.length === 0) {
+        // If no spaces exist, create default language options
+        const defaultSpaces = DEFAULT_LANGUAGES.map(language => ({
+          language,
+          activeSpeakers: [],
+          listeners: [],
+          status: 'active' as const,
+          topic: `${language} Practice Session`,
+        }));
+        setSpaces(defaultSpaces);
+      } else {
+        setSpaces(spacesData);
+      }
+      
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleJoinSpace = async (space: LanguageSpace) => {
     if (!user) {
@@ -57,98 +74,145 @@ function PracticeSection() {
     }
 
     try {
-      // Check if room exists or create new one
-      let roomId = space.roomId;
-      
-      if (!roomId) {
-        // Create a new room
-        const roomsRef = collection(firestore, 'rooms');
-        const newRoomRef = doc(roomsRef);
-        roomId = newRoomRef.id;
-
-        await setDoc(newRoomRef, {
-          language: space.language,
-          topic: space.topic,
-          createdAt: serverTimestamp(),
-          createdBy: user.uid,
-          activeSpeakers: [],
-          listeners: [],
-          status: 'active'
-        });
-
-        // Update the local state with the new roomId
-        setLanguageSpaces(spaces => 
-          spaces.map(s => 
-            s.language === space.language 
-              ? { ...s, roomId } 
-              : s
-          )
-        );
-      }
-
-      // Get current room data
-      const roomRef = doc(firestore, 'rooms', roomId);
-      const roomSnap = await getDoc(roomRef);
-      const roomData = roomSnap.data();
-
-      if (roomData) {
-        // Add user to listeners by default
-        const listeners = [...(roomData.listeners || [])];
-        if (!listeners.includes(user.uid)) {
-          listeners.push(user.uid);
-          await updateDoc(roomRef, { listeners });
+      // If the space has an ID, it already exists in Firestore
+      if (space.id) {
+        const spaceRef = doc(firestore, 'languageSpaces', space.id);
+        const spaceDoc = await getDoc(spaceRef);
+        
+        if (spaceDoc.exists()) {
+          const spaceData = spaceDoc.data();
+          const listeners = [...(spaceData.listeners || [])];
+          
+          if (!listeners.includes(user.uid)) {
+            listeners.push(user.uid);
+            await updateDoc(spaceRef, { listeners });
+          }
+          
+          router.push(`/space/${space.id}`);
         }
+      } else {
+        // Create a new space for this language
+        await handleCreateSpace(space.language);
       }
-
-      // Navigate to the room page
-      router.push(`/room/${roomId}`);
     } catch (error) {
       console.error('Error joining space:', error);
-      alert('Failed to join the language space. Please try again.');
+      alert('Failed to join the space. Please try again.');
     }
   };
 
-  return (
-    <div className="min-h-screen p-10">
-      <h1 className="text-4xl font-bold text-center mb-10 text-gray-400">
-        Language Spaces
-      </h1>
+  const handleCreateSpace = async (language: string) => {
+    if (!user) {
+      alert('Please sign in to create a space');
+      router.push('/login');
+      return;
+    }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {languageSpaces.map((space, index) => (
-          <div key={index} className="bg-white shadow-lg rounded-lg p-6 transition-transform transform hover:scale-105">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                {space.language} Space
-              </h2>
-              <span className="bg-green-500 text-white px-2 py-1 rounded-full text-sm">
-                Live
-              </span>
-            </div>
-            
-            <h3 className="text-lg text-gray-700 mb-4">{space.topic}</h3>
-            
-            <div className="flex items-center gap-4 mb-6 text-gray-600">
-              <div>
-                <span className="font-medium">{space.activeSpeakers}</span> speaking
-              </div>
-              <div>
-                <span className="font-medium">{space.listeners}</span> listening
-              </div>
-            </div>
+    setSelectedLanguage(language);
 
-            <div className="flex justify-center">
-              <button 
-                onClick={() => handleJoinSpace(space)}
-                className="bg-indigo-500 text-white px-6 py-2 rounded-full hover:bg-indigo-600 w-full disabled:bg-gray-400 disabled:cursor-not-allowed"
-                disabled={!user}
-              >
-                {user ? 'Join Space' : 'Sign in to Join'}
-              </button>
-            </div>
-          </div>
-        ))}
+    try {
+      const spacesRef = collection(firestore, 'languageSpaces');
+      const newSpaceRef = doc(spacesRef);
+      
+      await setDoc(newSpaceRef, {
+        language,
+        topic: `${language} Practice Session`,
+        activeSpeakers: [user.uid],
+        listeners: [],
+        status: 'active',
+        hostId: user.uid,
+        createdAt: serverTimestamp()
+      });
+
+      router.push(`/space/${newSpaceRef.id}`);
+    } catch (error) {
+      console.error('Error creating space:', error);
+      alert('Failed to create space. Please try again.');
+      setSelectedLanguage(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen p-10 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen p-10 bg-gray-50">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-4xl font-bold text-center mb-4 text-gray-800">
+          Language Spaces
+        </h1>
+        <p className="text-center text-gray-600 mb-10 max-w-2xl mx-auto">
+          Join a language space to practice speaking with others or create your own space to host a conversation.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {spaces.map((space, index) => (
+            <motion.div 
+              key={space.id || index}
+              whileHover={{ y: -5, boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
+              className="bg-white shadow-md rounded-xl overflow-hidden"
+            >
+              <div className="h-3 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-semibold text-gray-800">
+                    {space.language}
+                  </h2>
+                  <span className={`${space.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'} text-white px-2 py-1 rounded-full text-sm`}>
+                    {space.id ? 'Live' : 'Create New'}
+                  </span>
+                </div>
+                
+                <h3 className="text-lg text-gray-700 mb-4">{space.topic}</h3>
+                
+                {space.id ? (
+                  <div className="flex items-center gap-4 mb-6 text-gray-600">
+                    <div className="flex items-center">
+                      <span className="font-medium mr-1">{space.activeSpeakers.length}</span> speaking
+                    </div>
+                    <div className="flex items-center">
+                      <span className="font-medium mr-1">{space.listeners.length}</span> listening
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-6 text-gray-600">
+                    Be the first to start a {space.language} conversation!
+                  </div>
+                )}
+
+                <motion.button 
+                  onClick={() => handleJoinSpace(space)}
+                  className="w-full bg-indigo-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 transition-colors disabled:bg-gray-400 font-medium"
+                  disabled={!user || selectedLanguage === space.language}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {selectedLanguage === space.language ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Creating...
+                    </span>
+                  ) : space.id ? (
+                    'Join Space'
+                  ) : (
+                    'Create Space'
+                  )}
+                </motion.button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 }

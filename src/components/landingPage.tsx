@@ -11,36 +11,115 @@ export default function LandingPage() {
     delay: 500,
   });
 
+  const scaleUp = useSpring({
+    from: { transform: "scale(0.8)" },
+    to: { transform: "scale(1)" },
+    delay: 800,
+  });
+
   return (
     <Flowbite>
-      {/* Header Section */}
-      <Box className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white text-center p-6">
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundImage:
+            "url(https://images.pexels.com/photos/346529/pexels-photo-346529.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          textAlign: "center",
+          padding: "2rem",
+          color: "white",
+          position: "relative",
+        }}
+      >
+        {/* Overlay */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: -1,
+          }}
+        />
+
+        {/* Hero Section */}
         <animated.div style={fadeIn}>
           <Typography
             variant="h2"
-            className="font-bold text-4xl sm:text-5xl mb-4"
+            component="h1"
+            sx={{
+              fontWeight: "bold",
+              fontSize: { xs: "2.5rem", sm: "4rem" },
+              letterSpacing: "0.1rem",
+              mb: "1.5rem",
+              textShadow: "0px 4px 6px rgba(0, 0, 0, 0.3)",
+            }}
           >
-            🚀 Welcome to Lingolinc
+            Welcome to Lingolinc
           </Typography>
           <Typography
             variant="h5"
-            className="max-w-2xl mx-auto text-lg sm:text-xl text-gray-300"
+            component="p"
+            sx={{
+              maxWidth: "600px",
+              marginBottom: "2rem",
+              fontSize: { xs: "1.2rem", sm: "1.5rem" },
+              textShadow: "0px 2px 4px rgba(0, 0, 0, 0.3)",
+            }}
           >
-            Join us on an incredible journey to explore new opportunities.
-            Let’s achieve success together!
+            Join us on an incredible journey to explore new opportunities. Let’s
+            achieve success together!
           </Typography>
-          <Box className="flex flex-wrap justify-center gap-4 mt-6">
+          <Box
+            sx={{
+              display: "flex",
+              gap: "1rem",
+              flexDirection: { xs: "column", sm: "row" },
+            }}
+          >
             <Button
               variant="contained"
+              color="primary"
               size="large"
-              className="bg-blue-500 hover:bg-blue-700 transition-all duration-300"
+              sx={{
+                padding: "0.75rem 2rem",
+                borderRadius: "30px",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                backgroundColor: "#1976d2",
+                boxShadow: "0px 8px 15px rgba(0, 0, 0, 0.2)",
+                "&:hover": {
+                  backgroundColor: "#115293",
+                  boxShadow: "0px 12px 20px rgba(0, 0, 0, 0.3)",
+                },
+                transition: "all 0.3s ease",
+              }}
             >
               Get Started
             </Button>
             <Button
               variant="outlined"
               size="large"
-              className="border-white text-white hover:border-gray-300 transition-all duration-300"
+              sx={{
+                padding: "0.75rem 2rem",
+                borderRadius: "30px",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                color: "white",
+                borderColor: "white",
+                "&:hover": {
+                  borderColor: "#ccc",
+                  backgroundColor: "rgba(255, 255, 255, 0.2)",
+                },
+                transition: "all 0.3s ease",
+              }}
             >
               Learn More
             </Button>
@@ -49,42 +128,53 @@ export default function LandingPage() {
       </Box>
 
       {/* Features Section */}
-      <Container className="py-12">
+      <Container sx={{ py: 8 }}>
         <animated.div style={fadeIn}>
           <Typography
             variant="h4"
-            className="text-center font-bold text-gray-800 mb-6"
+            component="h2"
+            align="center"
+            gutterBottom
+            sx={{ fontWeight: "bold", color: "#333", mb: 4 }}
           >
             Why Choose Us?
           </Typography>
           <Typography
             variant="h6"
-            className="text-center text-gray-600 max-w-lg mx-auto mb-10"
+            component="p"
+            align="center"
+            sx={{ mb: 6, maxWidth: "700px", mx: "auto", color: "#555" }}
           >
-            We offer the best services to ensure you succeed. Here’s why we
-            stand out:
+            We offer the best services to ensure you succeed in your journey.
+            Here’s why we stand out:
           </Typography>
         </animated.div>
 
-        <Grid container spacing={4} justifyContent="center">
-          {/* Feature Cards */}
-          {[
-            { title: "Quality", desc: "Top-notch service and support." },
-            { title: "Innovation", desc: "Always evolving and improving." },
-            { title: "Support", desc: "24/7 help whenever you need it." },
-          ].map((feature, index) => (
-            <Grid item xs={12} sm={4} key={index}>
-              <Card className="p-6 text-center shadow-lg hover:shadow-2xl transition-all duration-300">
-                <Typography variant="h6" className="font-bold text-lg">
-                  {feature.title}
-                </Typography>
-                <Typography variant="body1" className="text-gray-600 mt-2">
-                  {feature.desc}
-                </Typography>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        {/* Feature Cards */}
+        <animated.div style={scaleUp}>
+          <Grid container spacing={4} justifyContent="center">
+            {[
+              { title: "Quality", desc: "Top-notch service and support." },
+              { title: "Innovation", desc: "Always evolving and improving." },
+              { title: "Support", desc: "24/7 help whenever you need it." },
+            ].map((feature, index) => (
+              <Grid item xs={12} sm={4} key={index}>
+                <Card className="p-6 text-center shadow-lg hover:shadow-2xl transition-all duration-300">
+                  <Typography variant="h6" className="font-bold text-lg">
+                    {feature.title}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    component="p"
+                    sx={{ color: "#777" }}
+                  >
+                    {feature.desc}
+                  </Typography>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </animated.div>
       </Container>
     </Flowbite>
   );
