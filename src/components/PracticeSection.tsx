@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, firestore } from '@/app/firebase/config';
+import { auth, firestore } from '@/app/firebase/config'; // Assuming firebase config is here
 import { collection, doc, setDoc, updateDoc, getDoc, onSnapshot, serverTimestamp, query, where } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { motion } from 'framer-motion';
@@ -30,10 +30,10 @@ const DEFAULT_LANGUAGES = [
 
 function PracticeSection() {
   const router = useRouter();
-  const [user] = useAuthState(auth);
+  const [user, loadingAuth] = useAuthState(auth); // use loadingAuth to check auth state loading
   const [spaces, setSpaces] = useState<LanguageSpace[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
+  const [loadingSpaces, setLoadingSpaces] = useState(true); // Separate loading state for spaces
+  const [creatingSpace, setCreatingSpace] = useState<string | null>(null); // Track which language space is being created
 
   useEffect(() => {
     // Subscribe to active spaces
@@ -47,94 +47,127 @@ function PracticeSection() {
       })) as LanguageSpace[];
       
       if (spacesData.length === 0) {
-        // If no spaces exist, create default language options
+        // If no active spaces exist, show default language options to create one
         const defaultSpaces = DEFAULT_LANGUAGES.map(language => ({
           language,
-          activeSpeakers: [],
-          listeners: [],
-          status: 'active' as const,
+          activeSpeakers: [], // No active speakers initially for a 'creatable' space
+          listeners: [], // No listeners initially
+          status: 'active' as const, // Mark as active to be displayed as an option
           topic: `${language} Practice Session`,
         }));
         setSpaces(defaultSpaces);
       } else {
-        setSpaces(spacesData);
+        // Show existing active spaces and also add options for languages that don't have active spaces
+        const existingLanguages = spacesData.map(space => space.language);
+        const creatableSpaces = DEFAULT_LANGUAGES
+          .filter(lang => !existingLanguages.includes(lang))
+          .map(language => ({
+            language,
+            activeSpeakers: [],
+            listeners: [],
+            status: 'active' as const,
+            topic: `${language} Practice Session`,
+          }));
+        setSpaces([...spacesData, ...creatableSpaces]);
       }
       
-      setLoading(false);
+      setLoadingSpaces(false);
+    }, (error) => {
+      console.error("Error fetching spaces:", error);
+      setLoadingSpaces(false);
+      // Optionally set an error state to display to the user
     });
 
     return () => unsubscribe();
-  }, []);
+  }, []); // Empty dependency array means this runs once on mount
 
-  const handleJoinSpace = async (space: LanguageSpace) => {
+  const handleJoinOrCreateSpace = async (space: LanguageSpace) => {
+    if (loadingAuth) return; // Prevent action while auth state is loading
+
     if (!user) {
-      alert('Please sign in to join a language space');
+      alert('Please sign in to join or create a language space');
       router.push('/login');
       return;
     }
+    
+    if (creatingSpace) return; // Prevent multiple creation attempts
+
+    setCreatingSpace(space.language); // Indicate that we are attempting to join/create this space
 
     try {
-      // If the space has an ID, it already exists in Firestore
+      // Check if the space already exists by ID (meaning it was fetched from Firestore)
       if (space.id) {
+        console.log(`Attempting to join existing space: ${space.id}`);
         const spaceRef = doc(firestore, 'languageSpaces', space.id);
         const spaceDoc = await getDoc(spaceRef);
         
         if (spaceDoc.exists()) {
+          // Update listeners array in Firestore
           const spaceData = spaceDoc.data();
-          const listeners = [...(spaceData.listeners || [])];
-          
-          if (!listeners.includes(user.uid)) {
-            listeners.push(user.uid);
-            await updateDoc(spaceRef, { listeners });
+          const currentListeners = spaceData.listeners || [];
+          if (!currentListeners.includes(user.uid)) {
+            await updateDoc(spaceRef, {
+              listeners: [...currentListeners, user.uid]
+            });
+             console.log(`Added user ${user.uid} to listeners in space ${space.id}`);
           }
-          
+          // Navigate to the space page
           router.push(`/space/${space.id}`);
+        } else {
+          // This case should ideally not happen if fetched from snapshot, but as a fallback:
+          alert('Space no longer exists. Please try another.');
+           setCreatingSpace(null); // Reset state if joining failed
         }
       } else {
-        // Create a new space for this language
-        await handleCreateSpace(space.language);
+        // If space.id is not present, it's a default language option to create a new space
+        console.log(`Attempting to create new space for language: ${space.language}`);
+        const spacesRef = collection(firestore, 'languageSpaces');
+        const newSpaceRef = doc(spacesRef); // Let Firestore generate a new ID
+        const newSpaceId = newSpaceRef.id;
+        
+        await setDoc(newSpaceRef, {
+          language: space.language,
+          topic: `${space.language} Practice Session`, // Default topic
+          activeSpeakers: [user.uid], // Creator is the first speaker
+          listeners: [],
+          status: 'active', // Mark as active immediately
+          hostId: user.uid, // Creator is the host
+          createdAt: serverTimestamp()
+        });
+        console.log(`Created new space ${newSpaceId} for language ${space.language}`);
+
+        // Navigate to the newly created space page
+        router.push(`/space/${newSpaceId}`);
       }
     } catch (error) {
-      console.error('Error joining space:', error);
-      alert('Failed to join the space. Please try again.');
+      console.error('Error joining or creating space:', error);
+      alert('Failed to process space request. Please try again.');
+       setCreatingSpace(null); // Reset state on error
     }
   };
 
-  const handleCreateSpace = async (language: string) => {
-    if (!user) {
-      alert('Please sign in to create a space');
-      router.push('/login');
-      return;
-    }
-
-    setSelectedLanguage(language);
-
-    try {
-      const spacesRef = collection(firestore, 'languageSpaces');
-      const newSpaceRef = doc(spacesRef);
-      
-      await setDoc(newSpaceRef, {
-        language,
-        topic: `${language} Practice Session`,
-        activeSpeakers: [user.uid],
-        listeners: [],
-        status: 'active',
-        hostId: user.uid,
-        createdAt: serverTimestamp()
-      });
-
-      router.push(`/space/${newSpaceRef.id}`);
-    } catch (error) {
-      console.error('Error creating space:', error);
-      alert('Failed to create space. Please try again.');
-      setSelectedLanguage(null);
-    }
-  };
-
-  if (loading) {
+  // Show loading spinner while auth or spaces are loading
+  if (loadingAuth || loadingSpaces) {
     return (
       <div className="min-h-screen p-10 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
+
+  // Show sign-in message if user is not authenticated after loading
+  if (!user) {
+    return (
+      <div className="min-h-screen p-10">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Please sign in to access language spaces</h1>
+          <button 
+            onClick={() => router.push('/login')}
+            className="bg-indigo-500 text-white px-6 py-2 rounded-full hover:bg-indigo-600"
+          >
+            Go to Login
+          </button>
+        </div>
       </div>
     );
   }
@@ -156,7 +189,7 @@ function PracticeSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {spaces.map((space, index) => (
             <motion.div 
-              key={space.id || index}
+              key={space.id || space.language} // Use space.id or language as key
               whileHover={{ y: -5, boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
               className="bg-white shadow-md rounded-xl overflow-hidden"
             >
@@ -166,9 +199,11 @@ function PracticeSection() {
                   <h2 className="text-2xl font-semibold text-gray-800">
                     {space.language}
                   </h2>
-                  <span className={`${space.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'} text-white px-2 py-1 rounded-full text-sm`}>
-                    {space.id ? 'Live' : 'Create New'}
-                  </span>
+                  {space.id ? (
+                     <span className="bg-green-500 text-white px-2 py-1 rounded-full text-sm">Live</span>
+                  ) : (
+                     <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-sm">Create New</span>
+                  )}
                 </div>
                 
                 <h3 className="text-lg text-gray-700 mb-4">{space.topic}</h3>
@@ -189,18 +224,18 @@ function PracticeSection() {
                 )}
 
                 <motion.button 
-                  onClick={() => handleJoinSpace(space)}
-                  className="w-full bg-indigo-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 transition-colors disabled:bg-gray-400 font-medium"
-                  disabled={!user || selectedLanguage === space.language}
+                  onClick={() => handleJoinOrCreateSpace(space)}
+                  className="w-full bg-indigo-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 transition-colors disabled:bg-gray-400 font-medium flex items-center justify-center"
+                  disabled={creatingSpace === space.language} // Disable button while creating/joining this space
                   whileTap={{ scale: 0.98 }}
                 >
-                  {selectedLanguage === space.language ? (
+                  {creatingSpace === space.language ? (
                     <span className="flex items-center justify-center">
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Creating...
+                      Processing...
                     </span>
                   ) : space.id ? (
                     'Join Space'
